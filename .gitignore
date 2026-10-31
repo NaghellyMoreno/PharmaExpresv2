@@ -1,0 +1,61 @@
+# --- Credenciales y variables de entorno ---
+# .env nunca se sube; .env.example sí (lleva solo los nombres).
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# --- Vercel ---
+.vercel/
+
+# --- Frontend: Node, React + Vite + TypeScript ---
+node_modules/
+dist/
+dist-ssr/
+*.local
+*.tsbuildinfo
+.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# --- Backend: NestJS (TypeScript) ---
+coverage/
+
+# --- Evidencias de QA ---
+qa/evidencia/
+
+# --- Pruebas end-to-end ---
+test-results/
+playwright-report/
+
+# --- Base de datos local ---
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+pgdata/
+
+# --- Archivos cargados en local (fórmulas, documentos) ---
+# Nunca se versionan documentos cargados (secciones 3.2 y 3.10).
+uploads/
+tmp/
+
+# --- Logs ---
+logs/
+*.log
+
+# --- Claude Code: configuración personal ---
+.claude/settings.local.json
+graphify-out/
+
+# --- Editores y sistema operativo ---
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
