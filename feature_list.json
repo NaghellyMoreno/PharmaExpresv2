@@ -1,0 +1,1508 @@
+[
+  {
+    "id": "F001",
+    "category": "privacy",
+    "priority": 1,
+    "description": "El usuario ve el aviso de privacidad en la web y acepta o rechaza el tratamiento de datos antes de que se le pida cualquier dato.",
+    "stories": ["HU-001"],
+    "steps": [
+      "Abrir la web en un navegador sin vinculación y verificar que lo primero que se muestra es el aviso de privacidad con la declaración 'soy el titular o actúo con su autorización', sin ningún campo de cédula, y que la pantalla de inicio también ofrece la opción 'Revocar mi autorización' (detalle en F092)",
+      "Rechazar el aviso y verificar que se informa que puede acudir a la atención presencial",
+      "Verificar en la base de datos que no quedó ningún registro de esa visita",
+      "Volver a abrir la web, aceptar como tercero y verificar que queda registrado: aceptó un tercero, la fecha, el canal web y la versión del aviso",
+      "Verificar que solo después de aceptar se pide la cédula"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F002",
+    "category": "privacy",
+    "priority": 1,
+    "description": "El usuario inicia el bot de Telegram, ve el aviso de privacidad y acepta o rechaza el tratamiento de datos antes de que se le pida cualquier dato.",
+    "stories": ["HU-001"],
+    "steps": [
+      "Desde un chat de Telegram que nunca ha usado el bot, verificar que el bot no ha enviado ningún mensaje",
+      "Iniciar el bot y verificar que lo primero que responde es el aviso de privacidad con la declaración 'soy el titular o actúo con su autorización', sin pedir la cédula, y que también ofrece la opción 'Revocar mi autorización' (detalle en F093)",
+      "Rechazar el aviso y verificar que se informa que puede acudir a la atención presencial y que no quedó ningún registro en la base de datos",
+      "Iniciar de nuevo, aceptar como titular y verificar que queda registrado: aceptó el titular, la fecha, el canal Telegram y la versión del aviso",
+      "Verificar que solo después de aceptar se pide la cédula"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F003",
+    "category": "functional",
+    "priority": 1,
+    "description": "El usuario verifica en la web la identidad del paciente con la cédula y el código de un solo uso que llega por SMS y por correo.",
+    "stories": ["HU-002"],
+    "steps": [
+      "Aceptar el tratamiento de datos en la web e ingresar la cédula de un paciente de prueba con celular y correo registrados en la EPS simulada",
+      "Verificar que el código llega por SMS y por correo (modo de prueba) y que ninguno de los dos mensajes incluye medicamentos ni diagnósticos",
+      "Verificar que el código tiene 6 dígitos y que el SMS empieza por 'Pharma Express:', no tiene tildes y no pasa de 160 caracteres",
+      "Ingresar el código correcto antes de 10 minutos y verificar que la identidad queda verificada",
+      "Intentar usar el mismo código otra vez y verificar que se rechaza",
+      "Verificar que al pedir el código con la cédula del paciente de prueba se muestra exactamente el mensaje: 'Si la cédula está afiliada a Salud Total o Sanitas, enviamos un código al celular registrado en tu EPS y al correo, si lo tiene. Si no te llega en 2 minutos, puedes pedir un código nuevo, actualizar tus datos en tu EPS o acudir a la atención presencial.'",
+      "Ingresar una cédula que no existe en la EPS simulada y verificar que se muestra exactamente el mismo mensaje, que no se envía ningún código y que no se crea ninguna cuenta",
+      "Pedir el código directamente por la API con una cédula afiliada y con una inexistente y verificar que las dos respuestas no permiten distinguir cuál está afiliada"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F004",
+    "category": "functional",
+    "priority": 1,
+    "description": "El usuario verifica por Telegram la identidad del paciente con la cédula y el código de un solo uso que llega por SMS y por correo.",
+    "stories": ["HU-002"],
+    "steps": [
+      "Aceptar el tratamiento de datos en el bot y enviar la cédula de un paciente de prueba con celular y correo registrados",
+      "Verificar que el código llega por SMS y por correo (modo de prueba), sin medicamentos ni diagnósticos, que tiene 6 dígitos y que el SMS empieza por 'Pharma Express:', no tiene tildes y no pasa de 160 caracteres",
+      "Enviar el código correcto antes de 10 minutos y verificar que la identidad queda verificada",
+      "Enviar el mismo código otra vez y verificar que se rechaza",
+      "Verificar que al enviar la cédula del paciente de prueba el bot responde exactamente: 'Si la cédula está afiliada a Salud Total o Sanitas, enviamos un código al celular registrado en tu EPS y al correo, si lo tiene. Si no te llega en 2 minutos, puedes pedir un código nuevo, actualizar tus datos en tu EPS o acudir a la atención presencial.'",
+      "Enviar una cédula que no existe en la EPS simulada y verificar que el bot responde exactamente el mismo mensaje, que no se envía ningún código y que no se crea ninguna cuenta"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F005",
+    "category": "security",
+    "priority": 1,
+    "description": "En la web, el código de un solo uso vence a los 10 minutos y se bloquea a los 3 intentos fallidos, y el usuario recibe los tres caminos de salida.",
+    "stories": ["HU-003"],
+    "steps": [
+      "Pedir un código en la web, esperar más de 10 minutos (o usar el mecanismo de prueba de tiempo que defina la arquitectura) e ingresarlo: verificar que se rechaza aunque sea correcto",
+      "Pedir un código nuevo, ingresar 3 códigos erróneos y luego el correcto: verificar que el correcto se rechaza",
+      "Verificar que en ambos casos se ofrecen tres caminos: pedir un código nuevo, orientación para actualizar los datos en la EPS y atención presencial",
+      "Escoger la orientación y verificar que no hay ningún formulario para cambiar el celular ni el correo",
+      "Pedir un código nuevo antes de que pasen 2 minutos desde el anterior y verificar que se rechaza",
+      "Pedir un código nuevo pasados 2 minutos, ingresar el código anterior y verificar que se rechaza porque quedó anulado; ingresar el nuevo y verificar que se acepta",
+      "Con la misma cédula, pedir 5 códigos en una hora respetando los 2 minutos y verificar que el sexto se rechaza, también si se pide por Telegram o directamente por la API"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F006",
+    "category": "security",
+    "priority": 1,
+    "description": "En Telegram, el código de un solo uso vence a los 10 minutos y se bloquea a los 3 intentos fallidos, y el usuario recibe los tres caminos de salida.",
+    "stories": ["HU-003"],
+    "steps": [
+      "Pedir un código por el bot y enviarlo después de 10 minutos: verificar que se rechaza aunque sea correcto",
+      "Pedir un código nuevo, enviar 3 códigos erróneos y luego el correcto: verificar que el correcto se rechaza",
+      "Verificar que en ambos casos el bot ofrece pedir un código nuevo, orientación para actualizar los datos en la EPS y atención presencial",
+      "Pedir por el bot un código nuevo antes de que pasen 2 minutos desde el anterior y verificar que se rechaza",
+      "Pedir un código nuevo pasados 2 minutos, enviar el código anterior y verificar que se rechaza porque quedó anulado",
+      "Con la misma cédula, pedir 5 códigos en una hora respetando los 2 minutos y verificar que el bot rechaza el sexto"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F007",
+    "category": "security",
+    "priority": 1,
+    "description": "El webhook del bot de Telegram solo procesa peticiones que traen el secreto correcto.",
+    "stories": [],
+    "steps": [
+      "Enviar una petición al webhook sin el secreto y verificar que se rechaza y no produce ningún efecto",
+      "Enviar una petición al webhook con un secreto incorrecto y verificar que se rechaza",
+      "Escribir al bot desde Telegram y verificar que responde (el secreto correcto funciona)"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F008",
+    "category": "security",
+    "priority": 1,
+    "description": "El sitio publicado y la API responden solo por HTTPS y con las cabeceras de seguridad HSTS, Content-Security-Policy y X-Content-Type-Options.",
+    "stories": [],
+    "steps": [
+      "Abrir la web publicada por HTTP y verificar que se redirige a HTTPS",
+      "Inspeccionar las respuestas de la web, de cada panel y de la API y verificar que incluyen Strict-Transport-Security, Content-Security-Policy y X-Content-Type-Options",
+      "Pedir sin sesión los archivos estáticos de los paneles y verificar que no contienen datos de pacientes ni de citas"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F009",
+    "category": "functional",
+    "priority": 2,
+    "description": "El navegador queda vinculado al paciente tras verificar la identidad y la vinculación vence a los 3 meses.",
+    "stories": ["HU-004"],
+    "steps": [
+      "Verificar la identidad en la web y cerrar el navegador",
+      "Volver a abrir la web en el mismo navegador y verificar que se pueden consultar las gestiones del paciente sin pedir otro código",
+      "Llevar la vinculación a su vencimiento de 3 meses (mecanismo de prueba de la arquitectura) y verificar que la web no muestra información, no permite gestiones y pide un código nuevo (que el navegador vencido no recibe notificaciones se verifica en F042, prioridad 6)",
+      "Ingresar un código nuevo y verificar que la vinculación vuelve a estar vigente"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F010",
+    "category": "functional",
+    "priority": 2,
+    "description": "El chat de Telegram queda vinculado al paciente tras verificar la identidad y la vinculación vence a los 3 meses.",
+    "stories": ["HU-004"],
+    "steps": [
+      "Verificar la identidad por el bot",
+      "Enviar otro mensaje más tarde y verificar que se pueden consultar las gestiones sin pedir otro código",
+      "Llevar la vinculación a su vencimiento de 3 meses y verificar que el bot no muestra información, no permite gestiones y pide un código nuevo (que el chat vencido no recibe notificaciones se verifica en F042, prioridad 6)"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F011",
+    "category": "functional",
+    "priority": 2,
+    "description": "Un cuidador o facilitador vincula varios pacientes al mismo navegador y escoge el paciente antes de cada gestión.",
+    "stories": ["HU-005"],
+    "steps": [
+      "En un navegador ya vinculado al paciente A, verificar la identidad del paciente B",
+      "Iniciar una gestión y verificar que la web pide escoger entre A y B antes de continuar",
+      "Verificar que en la lista cada paciente se identifica por su nombre",
+      "Escoger B y verificar que solo se ven las fórmulas y citas de B",
+      "Llevar a vencimiento solo la vinculación de A y verificar que B sigue funcionando y A pide un código nuevo"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F012",
+    "category": "functional",
+    "priority": 2,
+    "description": "Un cuidador o facilitador vincula varios pacientes al mismo chat de Telegram y escoge el paciente antes de cada gestión.",
+    "stories": ["HU-005"],
+    "steps": [
+      "En un chat ya vinculado al paciente A, verificar la identidad del paciente B",
+      "Iniciar una gestión y verificar que el bot pide escoger entre A y B antes de continuar",
+      "Verificar que en las opciones cada paciente se identifica por su nombre",
+      "Escoger A y verificar que solo se ven las fórmulas y citas de A",
+      "Llevar a vencimiento solo la vinculación de B y verificar que A sigue funcionando"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F013",
+    "category": "security",
+    "priority": 2,
+    "description": "La API del paciente rechaza cualquier consulta o gestión que no venga de un canal con vinculación vigente a ese paciente.",
+    "stories": ["HU-004"],
+    "steps": [
+      "Llamar directamente a la API de consulta de citas sin vinculación y verificar que se rechaza",
+      "Llamar con la vinculación de un navegador vinculado al paciente A pidiendo datos del paciente B y verificar que se rechaza",
+      "Llamar con una vinculación vencida y verificar que se rechaza",
+      "Verificar que ninguna respuesta rechazada contiene medicamentos, diagnósticos ni cédulas"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F014",
+    "category": "security",
+    "priority": 2,
+    "description": "Los identificadores de Telegram no dan acceso: un chat distinto con el mismo nombre visible o usuario no ve los datos del paciente sin cédula y código.",
+    "stories": ["HU-001", "HU-004"],
+    "steps": [
+      "Vincular el chat 1 al paciente A",
+      "Desde un chat 2 con el mismo nombre visible y otro usuario de Telegram, pedir las citas y verificar que el bot pide aceptar el aviso y verificar la identidad",
+      "Enviar al webhook una petición con el número de chat 2 y el usuario del chat 1 y verificar que no se devuelven datos de A",
+      "Verificar que el bot no ha enviado mensajes a ningún chat que no lo haya iniciado"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F015",
+    "category": "privacy",
+    "priority": 3,
+    "description": "En la web, el usuario autoriza el tratamiento de datos de salud y después carga fórmulas e historia clínica en foto o PDF, que se leen con OCR.",
+    "stories": ["HU-006", "HU-007"],
+    "steps": [
+      "Con un navegador vinculado sin autorización de datos de salud, intentar cargar un documento y verificar que primero se pide esa autorización, separada del aviso de privacidad",
+      "No autorizar e intentar cargar por la API y verificar que el archivo se rechaza y no se guarda",
+      "Autorizar, cargar una fórmula en foto y una historia clínica en PDF de prueba y verificar que el sistema muestra los datos obtenidos por OCR",
+      "Verificar que el documento guardado solo se abre con un enlace temporal y que el enlace deja de funcionar al vencer"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F016",
+    "category": "privacy",
+    "priority": 3,
+    "description": "En Telegram, el usuario autoriza el tratamiento de datos de salud y después envía fórmulas e historia clínica en foto o PDF, que se leen con OCR.",
+    "stories": ["HU-006", "HU-007"],
+    "steps": [
+      "Con un chat vinculado sin autorización de datos de salud, enviar una foto y verificar que el bot pide primero esa autorización y no guarda el archivo",
+      "Autorizar, enviar una fórmula como foto normal de Telegram (no como archivo) y una historia clínica en PDF de prueba y verificar que el bot acepta la foto y confirma los datos obtenidos por OCR",
+      "Verificar que el archivo quedó en almacenamiento privado y solo es accesible con enlace temporal"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F017",
+    "category": "functional",
+    "priority": 3,
+    "description": "En la web, si de un documento no se obtienen los datos, se pide cargarlo de nuevo y, si el problema persiste, la fórmula queda no apta con orientación a atención presencial.",
+    "stories": ["HU-008"],
+    "steps": [
+      "Cargar una foto ilegible y verificar que se pide cargarla de nuevo indicando el motivo",
+      "Cargar una historia clínica sin diagnóstico y verificar que se pide cargarla de nuevo",
+      "Cargar una fórmula cuyo número de fórmula no coincide con la EPS simulada y verificar que se pide cargarla de nuevo; repetir con una fórmula cuya cédula no coincide y verificar lo mismo",
+      "Cargar una historia clínica cuya cédula no coincide con la del paciente y verificar que se pide cargarla de nuevo",
+      "Cargar una historia clínica que trae el código CIE-10 del diagnóstico de la fórmula y verificar que hay coincidencia; cargar otra sin código CIE-10 pero con la descripción del diagnóstico escrita con otras tildes y mayúsculas y verificar que también hay coincidencia",
+      "Cargar una historia clínica que no contiene el diagnóstico que la EPS simulada tiene para la fórmula y verificar que se pide cargar de nuevo la historia clínica",
+      "Cargar un mismo documento ilegible 3 veces (la inicial y 2 recargas) y verificar que tras la tercera la fórmula queda no apta, no se ofrece otra carga y se orienta a la atención presencial",
+      "Repetir con una carga inicial ilegible y una segunda carga legible y verificar que la fórmula sigue a la prevalidación",
+      "En una solicitud con dos fórmulas, cargar la historia clínica ilegible 3 veces y verificar que quedan no aptas las dos fórmulas de la solicitud",
+      "En una solicitud con dos fórmulas, cargar 3 veces una historia clínica legible que contiene el diagnóstico de la fórmula 1 pero no el de la fórmula 2 y verificar que solo la fórmula 2 queda no apta y la fórmula 1 sigue a la prevalidación"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F018",
+    "category": "functional",
+    "priority": 3,
+    "description": "En Telegram, si de un documento no se obtienen los datos, se pide enviarlo de nuevo y, si el problema persiste, la fórmula queda no apta con orientación a atención presencial.",
+    "stories": ["HU-008"],
+    "steps": [
+      "Enviar como foto normal una imagen ilegible y verificar que el bot pide enviarla de nuevo indicando el motivo y sugiere enviarla como archivo",
+      "Enviar una fórmula cuyo número de fórmula o cédula no coincide con la EPS simulada y verificar que el bot pide enviarla de nuevo",
+      "Enviar un documento incompleto y verificar que se pide de nuevo",
+      "Enviar una historia clínica que no contiene el diagnóstico que la EPS simulada tiene para la fórmula y verificar que el bot pide enviarla de nuevo",
+      "Enviar un mismo documento ilegible 3 veces (el inicial y 2 reenvíos) y verificar que tras el tercero la fórmula queda no apta, el bot no ofrece otro envío y orienta a la atención presencial",
+      "En una solicitud con dos fórmulas, enviar la historia clínica incompleta 3 veces y verificar que el bot informa que las dos fórmulas quedan no aptas",
+      "En una solicitud con dos fórmulas, enviar 3 veces una historia clínica legible sin el diagnóstico de la fórmula 2 y verificar que solo la fórmula 2 queda no apta"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F019",
+    "category": "security",
+    "priority": 3,
+    "description": "La carga de documentos solo acepta JPG, PNG, HEIC y PDF de hasta 10 MB (PDF de hasta 5 páginas), valida el contenido real, limpia los metadatos y aplica un límite de frecuencia.",
+    "stories": ["HU-007"],
+    "steps": [
+      "En el sitio publicado, cargar un JPG, un PNG, un HEIC y un PDF válidos, uno de ellos de entre 4,5 MB y 10 MB, y verificar que todos se aceptan",
+      "Cargar un archivo de más de 10 MB y verificar que se rechaza con un mensaje que indica el límite",
+      "Cargar un PDF de 6 páginas y verificar que se rechaza; cargar uno de 5 páginas y verificar que se acepta",
+      "Cargar por la API un archivo ejecutable renombrado como .jpg y con tipo declarado image/jpeg y verificar que se rechaza",
+      "Cargar una foto con ubicación en sus metadatos y verificar que el archivo guardado tiene un nombre aleatorio y ya no contiene la ubicación",
+      "Cargar 20 archivos válidos para un mismo paciente en menos de una hora y verificar que el archivo 21 se rechaza con un mensaje claro, también si se envía por el otro canal o directamente por la API",
+      "Intentar abrir un documento por una dirección pública sin enlace temporal y verificar que no es accesible"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F020",
+    "category": "functional",
+    "priority": 4,
+    "description": "En la web, si la afiliación del paciente está inactiva, la prevalidación detiene toda la solicitud y orienta hacia la EPS.",
+    "stories": ["HU-009"],
+    "steps": [
+      "Con un paciente de prueba con afiliación inactiva en la EPS simulada, cargar dos fórmulas y prevalidar",
+      "Verificar que se detiene toda la solicitud, no se muestra resultado de vigencia, cobertura ni autorización y se orienta hacia la EPS",
+      "Con un paciente activo con dos fórmulas, verificar que la afiliación se consulta una sola vez por solicitud"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F021",
+    "category": "functional",
+    "priority": 4,
+    "description": "En Telegram, si la afiliación del paciente está inactiva, la prevalidación detiene toda la solicitud y orienta hacia la EPS.",
+    "stories": ["HU-009"],
+    "steps": [
+      "Con un paciente de prueba con afiliación inactiva, enviar una fórmula por el bot y prevalidar",
+      "Verificar que el bot detiene toda la solicitud y orienta hacia la EPS, sin evaluar las demás reglas"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F022",
+    "category": "functional",
+    "priority": 4,
+    "description": "En la web, la prevalidación revisa la vigencia según el dato de la EPS simulada, la cobertura PBS y la autorización de cada medicamento, y orienta con los trámites de la EPS cuando falta autorización.",
+    "stories": ["HU-010"],
+    "steps": [
+      "Prevalidar una fórmula con más de 30 días desde la consulta pero vigente según la EPS simulada y verificar que pasa la regla de vigencia",
+      "Prevalidar una fórmula no vigente según la EPS simulada y verificar que queda no apta con el mensaje de que requiere nueva valoración médica",
+      "Prevalidar una fórmula con un medicamento no cubierto por el PBS y autorizado y verificar que continúa",
+      "Prevalidar una fórmula con un medicamento no cubierto y sin autorización y verificar que queda no apta y se muestran solo los puntos, enlaces o trámites configurados para la EPS del paciente",
+      "Verificar que no hay ninguna opción para tramitar la autorización desde el sistema"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F023",
+    "category": "functional",
+    "priority": 4,
+    "description": "En Telegram, la prevalidación revisa la vigencia según el dato de la EPS simulada, la cobertura PBS y la autorización de cada medicamento, y orienta con los trámites de la EPS cuando falta autorización.",
+    "stories": ["HU-010"],
+    "steps": [
+      "Prevalidar por el bot una fórmula no vigente según la EPS simulada y verificar que queda no apta con el mensaje de nueva valoración médica",
+      "Prevalidar una fórmula con un medicamento no cubierto y autorizado y verificar que continúa",
+      "Prevalidar una fórmula con un medicamento sin autorización y verificar que el bot muestra solo los puntos, enlaces o trámites de la EPS del paciente"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F024",
+    "category": "functional",
+    "priority": 4,
+    "description": "En la web, el tipo de tratamiento sale del catálogo de diagnósticos crónicos y las fórmulas crónicas solo son aptas si la fecha habilitada es igual o anterior al día siguiente.",
+    "stories": ["HU-011"],
+    "steps": [
+      "Prevalidar una fórmula cuyo diagnóstico en la EPS simulada está en el catálogo de crónicos (y aparece en la historia clínica) con fecha habilitada igual a mañana y verificar que se clasifica como crónica y es apta",
+      "Prevalidar una fórmula crónica con fecha habilitada pasado mañana y verificar que queda no apta",
+      "Prevalidar una fórmula con un diagnóstico fuera del catálogo y verificar que se clasifica como aguda y no se evalúa la habilitación",
+      "Con una historia clínica que trae un diagnóstico crónico y otro agudo, prevalidar una fórmula cuyo diagnóstico en la EPS simulada es el agudo y verificar que se clasifica como aguda"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F025",
+    "category": "functional",
+    "priority": 4,
+    "description": "En Telegram, el tipo de tratamiento sale del catálogo de diagnósticos crónicos y las fórmulas crónicas solo son aptas si la fecha habilitada es igual o anterior al día siguiente.",
+    "stories": ["HU-011"],
+    "steps": [
+      "Prevalidar por el bot una fórmula crónica con fecha habilitada igual a mañana y verificar que es apta",
+      "Prevalidar una fórmula crónica con fecha habilitada pasado mañana y verificar que queda no apta",
+      "Prevalidar una fórmula aguda y verificar que no se evalúa la habilitación",
+      "Con una historia clínica de varios diagnósticos, verificar que cada fórmula se clasifica con el diagnóstico que la EPS simulada tiene para ella"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F026",
+    "category": "functional",
+    "priority": 4,
+    "description": "En la web, el resultado se muestra por fórmula, es todo o nada, las fórmulas son independientes y todo resultado se presenta como preliminar.",
+    "stories": ["HU-012"],
+    "steps": [
+      "Prevalidar una solicitud con la fórmula 1 (todos los medicamentos cumplen) y la fórmula 2 (un medicamento sin autorización y otro que cumple)",
+      "Verificar que la fórmula 2 completa queda no apta y se indica gestionarla con la EPS",
+      "Verificar que la fórmula 1 continúa hacia disponibilidad",
+      "Verificar que el resultado lleva el aviso de que es preliminar y que la validación oficial ocurre en el punto"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F027",
+    "category": "functional",
+    "priority": 4,
+    "description": "En Telegram, el resultado se muestra por fórmula, es todo o nada, las fórmulas son independientes y todo resultado se presenta como preliminar.",
+    "stories": ["HU-012"],
+    "steps": [
+      "Prevalidar por el bot una solicitud con una fórmula apta y otra con un medicamento que no cumple",
+      "Verificar que la segunda queda no apta completa y la primera continúa",
+      "Verificar que el mensaje de resultado lleva el aviso de resultado preliminar y de validación oficial en el punto"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F028",
+    "category": "functional",
+    "priority": 5,
+    "description": "En la web, el usuario ve solo las ventanas permitidas según el tipo de tratamiento, en puntos con existencias y cupo.",
+    "stories": ["HU-013"],
+    "steps": [
+      "Con una fórmula aguda apta, consultar ventanas a las 10:15 (hora de Bogotá) y verificar que se ofrecen las del mismo día que inician a las 11:15 o después (según el horario del punto) y las del día siguiente, y ninguna otra",
+      "Con una fórmula crónica apta, verificar que solo se ofrecen ventanas del día calendario siguiente",
+      "Con una solicitud que mezcla agudo y crónico en el mismo punto, verificar que solo se ofrecen ventanas del día siguiente",
+      "Verificar que no se ofrecen puntos sin existencias ni ventanas sin cupo",
+      "Con medicamentos disponibles solo en puntos distintos, verificar que se agenda una cita por punto",
+      "Con un medicamento con existencias en dos puntos, verificar que el usuario escoge el punto entre ambos"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F029",
+    "category": "functional",
+    "priority": 5,
+    "description": "En Telegram, el usuario ve solo las ventanas permitidas según el tipo de tratamiento, en puntos con existencias y cupo.",
+    "stories": ["HU-013"],
+    "steps": [
+      "Con una fórmula aguda apta, pedir ventanas por el bot y verificar que se ofrecen las del mismo día que inician al menos una hora después y las del día siguiente",
+      "Con una fórmula crónica apta, verificar que solo se ofrecen ventanas del día siguiente",
+      "Verificar que no se ofrecen puntos sin existencias ni ventanas sin cupo",
+      "Con un medicamento con existencias en dos puntos, verificar que el bot deja escoger el punto"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F030",
+    "category": "functional",
+    "priority": 5,
+    "description": "En la web, el usuario confirma sus citas y queda reservado todo o nada por fórmula; si otra persona confirmó antes, se le informa y ve las opciones actualizadas.",
+    "stories": ["HU-014"],
+    "steps": [
+      "Confirmar una cita y verificar que quedan reservadas las existencias de cada medicamento y un cupo de la ventana",
+      "Preparar una fórmula con medicamentos en dos puntos, dejar sin cupo la ventana escogida en el segundo punto antes de confirmar y verificar que no se reserva ninguna de las dos citas",
+      "Verificar que se informa al usuario y se muestran las opciones actualizadas",
+      "Con una solicitud de dos fórmulas aptas, confirmar la primera y verificar que queda reservada aunque la segunda no se haya confirmado; luego hacer fallar la confirmación de la segunda y verificar que la primera sigue confirmada",
+      "Mientras el usuario escoge la ventana sin confirmar, ocupar su último cupo desde otra sesión y verificar que no se le había apartado: al confirmar recibe el aviso con opciones actualizadas"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F031",
+    "category": "functional",
+    "priority": 5,
+    "description": "En Telegram, el usuario confirma sus citas y queda reservado todo o nada por fórmula; si otra persona confirmó antes, se le informa y ve las opciones actualizadas.",
+    "stories": ["HU-014"],
+    "steps": [
+      "Confirmar una cita por el bot y verificar que quedan reservadas las existencias y el cupo",
+      "Hacer que otra persona ocupe el último cupo de la ventana escogida antes de confirmar y verificar que el bot informa y muestra opciones actualizadas sin reservar nada",
+      "Con una solicitud de dos fórmulas aptas, verificar que el bot pide confirmar cada fórmula por separado y que el fallo de una no deshace la otra"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F032",
+    "category": "functional",
+    "priority": 5,
+    "description": "Cuando dos personas confirman al mismo tiempo el último cupo o las últimas existencias, solo una gana: cero sobre-reservas.",
+    "stories": ["HU-014"],
+    "steps": [
+      "Dejar una ventana con un solo cupo",
+      "Enviar dos confirmaciones simultáneas (una por web y otra por Telegram, o dos por la API) para esa ventana",
+      "Verificar que solo una cita queda confirmada y la otra recibe el aviso con opciones actualizadas",
+      "Repetir con un medicamento con una sola unidad en existencia y cupo de sobra y verificar que solo una reserva gana",
+      "Verificar en la base de datos que ninguna ventana supera su capacidad, ninguna reserva supera las existencias y no hay citas sin reserva"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F033",
+    "category": "functional",
+    "priority": 5,
+    "description": "En la web, si un medicamento no tiene existencias en ningún punto o no hay cupo en los días permitidos, se informa la espera de 48 horas sin crear pendientes.",
+    "stories": ["HU-015"],
+    "steps": [
+      "Con un medicamento sin existencias en ningún punto, consultar disponibilidad y verificar que se informa esperar 48 horas para volver a validar",
+      "Verificar que el mensaje presenta las 48 horas como plazo propio de Pharma Express y no como cumplimiento de una norma",
+      "Verificar que no se creó ningún pendiente ni reserva",
+      "Repetir con existencias pero sin cupo en los días permitidos y verificar el mismo resultado",
+      "Agregar existencias en el inventario simulado con el mecanismo de datos de prueba de la arquitectura (sin el panel de administración, que es de prioridad 8) y verificar que el sistema no avisa al usuario",
+      "Antes de que pasen 48 horas, verificar que la web no ofrece volver a validar esa fórmula"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F034",
+    "category": "functional",
+    "priority": 5,
+    "description": "En Telegram, si un medicamento no tiene existencias en ningún punto o no hay cupo en los días permitidos, se informa la espera de 48 horas sin crear pendientes.",
+    "stories": ["HU-015"],
+    "steps": [
+      "Con un medicamento sin existencias en ningún punto, consultar disponibilidad por el bot y verificar que informa esperar 48 horas como plazo propio del producto",
+      "Verificar que no se creó ningún pendiente ni reserva"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F035",
+    "category": "functional",
+    "priority": 5,
+    "description": "En la web, el usuario consulta sus citas y el código de entrega en QR y numérico cuando lo necesita.",
+    "stories": ["HU-016"],
+    "steps": [
+      "Con una cita confirmada, abrir más tarde la web y consultar las citas",
+      "Verificar que se ven el punto, la ventana y el código de entrega en QR y numérico, y que el código numérico tiene 8 dígitos",
+      "Con dos citas en puntos distintos, verificar que cada una tiene su propio código",
+      "Desde un navegador sin vinculación vigente, verificar que el código no se muestra"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F036",
+    "category": "functional",
+    "priority": 5,
+    "description": "En Telegram, el usuario consulta sus citas y el código de entrega en QR y numérico cuando lo necesita.",
+    "stories": ["HU-016"],
+    "steps": [
+      "Con una cita confirmada, pedir las citas al bot más tarde",
+      "Verificar que el bot envía el punto, la ventana, la imagen QR y el código numérico de 8 dígitos",
+      "Desde un chat sin vinculación vigente, verificar que el código no se envía"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F037",
+    "category": "functional",
+    "priority": 5,
+    "description": "En la web, el usuario cancela una cita en cualquier momento y se liberan existencias y cupo; para otra cita debe iniciar una nueva solicitud.",
+    "stories": ["HU-017"],
+    "steps": [
+      "Cancelar una cita confirmada y verificar que se liberan las existencias y el cupo",
+      "Verificar que la cita aparece cancelada en la web, que ya no muestra su código de entrega y que en la base de datos el código quedó inválido (el rechazo en el panel del dispensador se prueba en F053, prioridad 7)",
+      "Verificar que no hay opción de reprogramar y que para otra cita se debe iniciar una nueva solicitud",
+      "Con una fórmula de la que no se ha entregado nada, cancelar su cita y verificar que todo se libera (el caso de entrega parcial se prueba en F099, prioridad 8)"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F038",
+    "category": "functional",
+    "priority": 5,
+    "description": "En Telegram, el usuario cancela una cita en cualquier momento y se liberan existencias y cupo; para otra cita debe iniciar una nueva solicitud.",
+    "stories": ["HU-017"],
+    "steps": [
+      "Cancelar una cita por el bot y verificar que se liberan las existencias y el cupo",
+      "Verificar que el código de esa cita deja de ser válido",
+      "Verificar que el bot no ofrece reprogramar"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F039",
+    "category": "functional",
+    "priority": 5,
+    "description": "La reserva de una cita no atendida expira al terminar su ventana y los medicamentos y el cupo quedan libres.",
+    "stories": ["HU-018"],
+    "steps": [
+      "Confirmar una cita y dejar pasar el fin de su ventana sin validar el código",
+      "Verificar que las existencias reservadas y el cupo vuelven a estar disponibles",
+      "Verificar que la cita aparece expirada en la web y en Telegram y que en la base de datos su código quedó inválido (el rechazo en el panel del dispensador se prueba en F053, prioridad 7; el caso de entrega parcial, en F099, prioridad 8)"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F040",
+    "category": "privacy",
+    "priority": 5,
+    "description": "En la web, quien supera la verificación con un código nuevo revoca el consentimiento del paciente: se eliminan sus datos, se cancelan sus citas activas, se conserva solo la prueba exigida y se envía confirmación por SMS y correo.",
+    "stories": ["HU-019"],
+    "steps": [
+      "Preparar un paciente de prueba con documentos cargados, una prevalidación, una cita activa, una cita que el usuario canceló antes, y el navegador y un chat de Telegram vinculados",
+      "Desde el navegador vinculado, escoger 'Revocar mi autorización' en la pantalla de inicio, ingresar la cédula y verificar que el sistema exige un código nuevo enviado por SMS y correo aunque el navegador esté vinculado; ingresar un código incorrecto y verificar que no se revoca",
+      "Verificar que el flujo pide declarar si quien revoca es el titular o un tercero que actúa con su autorización, sin pedir aceptar el aviso de privacidad, y que sin esa declaración la revocación no se completa",
+      "Declarar 'tercero', ingresar el código correcto y verificar que se confirma la revocación",
+      "Verificar en la base de datos que se eliminaron los documentos, los datos del OCR, los resultados de prevalidación, las solicitudes, las citas, las vinculaciones del navegador y del chat y los recordatorios programados, y que los documentos ya no se abren ni con un enlace temporal generado antes",
+      "Verificar que la cita activa quedó cancelada, que en la base de datos su código quedó inválido (el rechazo en el panel del dispensador se prueba en F053, prioridad 7) y que el cupo y las existencias quedan disponibles para otra persona",
+      "Verificar que se conserva la prueba del consentimiento y de la revocación (fecha, canal web, 'tercero' tal como se declaró y versión del aviso) ligada a una huella con clave secreta de la cédula, que no es la cédula en claro",
+      "Verificar que de la cita cancelada por la revocación y de la que el usuario canceló antes solo queda punto, ventana, fecha y motivo, sin cédula, nombre, diagnósticos ni medicamentos (el caso de una cita entregada se prueba en F100, prioridad 8)",
+      "Verificar que llega una confirmación de revocación por SMS y por correo (modo de prueba) que indica que se canceló 1 cita activa, sin medicamentos, diagnósticos ni puntos",
+      "Verificar que no se envió ninguna notificación de cancelación de la cita por ningún medio, aparte de esa confirmación",
+      "Verificar que el navegador y el chat ya no muestran información del paciente (que los recordatorios programados no se envían tras revocar se prueba en F045, prioridad 6)",
+      "Verificar que los datos del paciente en la EPS simulada no cambiaron"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F041",
+    "category": "privacy",
+    "priority": 5,
+    "description": "En Telegram, quien supera la verificación con un código nuevo revoca el consentimiento del paciente: se eliminan sus datos, se cancelan sus citas activas, se conserva solo la prueba exigida y se envía confirmación por SMS y correo.",
+    "stories": ["HU-019"],
+    "steps": [
+      "Con un chat vinculado a un paciente con documentos cargados y dos citas activas, escoger en el bot 'Revocar mi autorización', enviar la cédula y verificar que exige un código nuevo enviado por SMS y correo aunque el chat esté vinculado",
+      "Verificar que el bot pide declarar si quien revoca es el titular o un tercero que actúa con su autorización, sin pedir aceptar el aviso de privacidad, y que sin esa declaración no completa la revocación",
+      "Declarar 'titular', enviar el código correcto y verificar que el bot confirma la revocación",
+      "Verificar en la base de datos que se eliminaron documentos, datos del OCR, resultados de prevalidación, solicitudes, citas, vinculaciones y recordatorios programados",
+      "Verificar que las dos citas activas quedaron canceladas y que el cupo y las existencias quedan disponibles",
+      "Verificar que se conserva la prueba del consentimiento y de la revocación (fecha, canal Telegram, 'titular' tal como se declaró y versión del aviso) ligada a una huella con clave secreta de la cédula, y de cada cita solo punto, ventana, fecha y motivo",
+      "Verificar que llega la confirmación de revocación por SMS y correo que indica que se cancelaron 2 citas activas, sin medicamentos, diagnósticos ni puntos, que no llegó ninguna notificación de cancelación por cita y que el chat ya no muestra información del paciente",
+      "Verificar que los datos del paciente en la EPS simulada no cambiaron"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F042",
+    "category": "notification",
+    "priority": 6,
+    "description": "Cada notificación llega por todos los medios del paciente: navegadores y chats con vinculación vigente, SMS y correo.",
+    "stories": ["HU-004", "HU-020"],
+    "steps": [
+      "Vincular al paciente un navegador con permiso de notificaciones y un chat de Telegram; el paciente tiene celular y correo en la EPS simulada",
+      "Disparar una notificación y verificar que llega al navegador, al chat, por SMS y por correo (modo de prueba)",
+      "Repetir con un paciente sin correo registrado y verificar que llega por los demás medios",
+      "Vencer la vinculación del chat y verificar que ese chat ya no recibe la notificación",
+      "Vencer la vinculación de un navegador y verificar que ese navegador no recibe la notificación mientras el SMS y el correo sí llegan (pasos movidos desde F009 y F010)",
+      "En un navegador y un chat vinculados a los pacientes A y B, desvincular a A y verificar que ni el navegador ni el chat reciben las notificaciones de A, que siguen recibiendo las de B y que el SMS y el correo de A sí llegan (pasos movidos desde F067 y F068)",
+      "Verificar que el sistema no envía avisos cuando cambian las existencias en el inventario simulado (cambiadas con el mecanismo de datos de prueba de la arquitectura) ni cuando la EPS simulada aprueba una autorización"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F043",
+    "category": "privacy",
+    "priority": 8,
+    "description": "Ninguna notificación ni enlace al bot, por ningún medio, incluye nombres de medicamentos, diagnósticos, cédulas ni otros datos sensibles, y todo SMS sigue el formato aprobado.",
+    "stories": ["HU-020", "HU-019"],
+    "steps": [
+      "Disparar cada tipo de notificación (confirmación, cancelación, expiración, pérdida de lo no recogido, recordatorio del día anterior, recordatorio de dos horas antes, aviso por reverificación con cita cancelada y con cita mantenida, recordatorio de 48 horas, aviso a crónicos, confirmación de revocación); se prueba en prioridad 8 porque la pérdida de lo no recogido (F099) y el aviso a crónicos (F048) dependen del panel del dispensador",
+      "Revisar el texto de cada mensaje en web, Telegram, SMS y correo y verificar que no contiene nombres de medicamentos ni diagnósticos de prueba",
+      "Verificar que cada SMS, incluidos el del código y la confirmación de revocación, empieza por 'Pharma Express:', no tiene tildes y no pasa de 160 caracteres",
+      "Verificar que la confirmación de revocación tampoco nombra puntos de dispensación y solo indica cuántas citas activas se cancelaron",
+      "Revisar cada enlace directo al bot y verificar que no lleva cédula, diagnósticos, medicamentos ni otros datos sensibles"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F044",
+    "category": "notification",
+    "priority": 6,
+    "description": "El paciente recibe un recordatorio entre las 19:00 y las 21:00 del día anterior a la cita, salvo en citas del mismo día o agendadas después de las 19:00 del día anterior.",
+    "stories": ["HU-021"],
+    "steps": [
+      "Agendar a las 15:00 una cita para el día siguiente y verificar que el recordatorio se envía entre las 19:00 y las 21:00 (hora de Bogotá) por todos los medios",
+      "Agendar a las 19:30 una cita para el día siguiente y verificar que no se envía el recordatorio del día anterior y que sí llegó la notificación de confirmación",
+      "Agendar una cita aguda del mismo día y verificar que no se envía este recordatorio",
+      "Verificar que el recordatorio solo informa y ofrece cancelar, sin pedir confirmación",
+      "Verificar que el recordatorio por SMS y por correo indica cancelar dentro de la web o del bot y que ningún enlace lleva cédula, medicamentos ni diagnósticos"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F045",
+    "category": "notification",
+    "priority": 6,
+    "description": "El paciente recibe un recordatorio dos horas antes de la cita, con un desfase máximo de 10 minutos, que solo informa y ofrece cancelar; no se envía si la cita se agendó con menos de 2 horas de anticipación.",
+    "stories": ["HU-022"],
+    "steps": [
+      "Agendar una cita del día siguiente y otra del mismo día con más de 2 horas de anticipación",
+      "Verificar que ambas reciben un recordatorio por todos los medios entre dos horas antes del inicio de la ventana y 10 minutos después de esa hora",
+      "Agendar una cita aguda del mismo día con menos de 2 horas de anticipación (por ejemplo, a las 10:15 para la ventana de 12:00) y verificar que no se envía este recordatorio",
+      "Usar la opción de cancelar del recordatorio en la web o en Telegram y verificar que la cita se cancela y se libera",
+      "Verificar que el recordatorio no pide confirmación",
+      "Verificar que el recordatorio por SMS y por correo indica cancelar dentro de la web o del bot, que la cancelación exige una vinculación vigente y que ningún enlace lleva cédula, medicamentos ni diagnósticos",
+      "Simular que el envío programado sale más de 10 minutos tarde con la cita aún sin empezar y verificar que el recordatorio se envía, que se hace la reverificación y que queda registrado un incumplimiento del plazo de 10 minutos sin cédulas, diagnósticos ni medicamentos",
+      "Simular que el envío programado se retrasa hasta después del inicio de la ventana y verificar que el recordatorio no se envía, que no se reverifica y que queda registrado el incumplimiento",
+      "Con una cita que tiene recordatorios programados, revocar la autorización del paciente (F040) y verificar que, llegada la hora, no se envía ningún recordatorio (paso movido desde F040)",
+      "Cancelar una solicitud con una cita que tiene recordatorios programados (F094) y verificar que, llegada la hora, no se envía ningún recordatorio"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F046",
+    "category": "notification",
+    "priority": 6,
+    "description": "Al enviar el recordatorio de dos horas antes, el sistema reverifica afiliación, vigencia y autorizaciones y, si algo cambió, la fórmula queda no apta, libera sus medicamentos en todos los puntos, se cancela la cita que queda sin medicamentos y se notifica el motivo.",
+    "stories": ["HU-022"],
+    "steps": [
+      "Agendar para una fórmula con medicamentos en los puntos A y B una cita en cada punto y, antes del recordatorio de dos horas antes, cambiar en la EPS simulada la autorización de un medicamento a no vigente",
+      "Verificar que la fórmula queda no apta, que se liberan sus medicamentos en los dos puntos y que las dos citas, que quedaron sin medicamentos, se cancelan y liberan su cupo",
+      "Verificar que queda registrado qué dato cambió y cuándo",
+      "Verificar que se notifica por todos los medios el motivo, que la cita no se mantiene y el siguiente paso, sin nombrar medicamentos ni diagnósticos, y que el detalle se puede consultar en la web y en Telegram",
+      "Repetir con una fórmula que deja de estar vigente y verificar el mismo resultado",
+      "Con una solicitud de dos fórmulas con citas, cambiar la afiliación a inactiva y verificar que las dos fórmulas quedan no aptas y sus citas se cancelan",
+      "Repetir sin cambios y verificar que la cita se mantiene",
+      "Agendar una cita con menos de 2 horas de anticipación, cambiar después la autorización en la EPS simulada y verificar que no se reverifica: la cita se mantiene"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F047",
+    "category": "notification",
+    "priority": 6,
+    "description": "Cuando no hubo disponibilidad, el paciente recibe un único recordatorio a las 48 horas para volver a validar.",
+    "stories": ["HU-015"],
+    "steps": [
+      "Provocar a las 10:00 el caso sin existencias en ningún punto",
+      "Verificar que el recordatorio no sale antes de cumplirse las 48 horas y que sale por todos los medios a más tardar 1 hora después (entre las 10:00 y las 11:00 del tercer día)",
+      "Provocar el caso a las 23:30 y verificar que, como la marca de 48 horas cae entre las 21:00 y las 7:00, el recordatorio sale a las 7:00 siguientes y no antes",
+      "Verificar que no se envía ningún otro recordatorio por ese caso después",
+      "Cancelar la solicitud (F094) antes de que se cumplan las 48 horas y verificar que el recordatorio no se envía",
+      "Verificar que el texto no presenta las 48 horas como cumplimiento normativo"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F048",
+    "category": "notification",
+    "priority": 8,
+    "description": "Después de entregar una fórmula crónica, el paciente recibe un aviso 2 días antes de la siguiente fecha habilitada, en el despacho diario de las 19:00, para iniciar una nueva prevalidación.",
+    "stories": ["HU-023"],
+    "steps": [
+      "Entregar una fórmula crónica en el panel del dispensador (F054, prioridad 7; por eso esta funcionalidad va en prioridad 8) cuya siguiente fecha habilitada en la EPS simulada es dentro de 5 días",
+      "Verificar que el aviso sale por todos los medios en el despacho diario de las 19:00 (hora de Bogotá) del día que está 2 días antes de esa fecha, y no en otro despacho",
+      "Verificar que el aviso invita a iniciar una nueva prevalidación y que no se creó ninguna cita",
+      "Repetir con una fórmula crónica cerrada con un medicamento no entregado (entrega parcial) y verificar que el aviso también se envía 2 días antes de la siguiente fecha habilitada"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F049",
+    "category": "security",
+    "priority": 6,
+    "description": "Las tareas programadas (recordatorios, reverificación, avisos) solo se ejecutan si traen el secreto correcto.",
+    "stories": [],
+    "steps": [
+      "Llamar a cada tarea programada sin secreto y verificar que se rechaza sin enviar mensajes ni cambiar datos",
+      "Llamar con un secreto incorrecto y verificar que se rechaza",
+      "Verificar que la ejecución programada con el secreto correcto envía los recordatorios esperados"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F050",
+    "category": "functional",
+    "priority": 7,
+    "description": "El dispensador inicia y cierra sesión en su panel; la sesión dura como máximo 12 horas y se cierra tras 30 minutos sin actividad, y 5 contraseñas erradas bloquean la cuenta 15 minutos.",
+    "stories": ["HU-024"],
+    "steps": [
+      "Abrir el panel del dispensador sin sesión y verificar que pide iniciar sesión",
+      "Iniciar sesión con una cuenta de dispensador de la semilla de prueba (requisito RP-01 para la arquitectura; las cuentas creadas por el administrador llegan en F071, prioridad 8) y verificar que se muestra su panel, separado de la web del paciente y del panel de administración",
+      "Cerrar sesión y verificar que la API rechaza las peticiones con la sesión anterior",
+      "Ingresar 5 contraseñas erradas y luego la correcta: verificar que la cuenta está bloqueada; pasados 15 minutos, verificar que la correcta funciona",
+      "Dejar la sesión 30 minutos sin actividad y verificar que la API la rechaza y se pide iniciar sesión de nuevo",
+      "Mantener una sesión con actividad hasta cumplir 12 horas (mecanismo de prueba de tiempo de la arquitectura) y verificar que se cierra"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F051",
+    "category": "security",
+    "priority": 7,
+    "description": "La API del panel del dispensador rechaza peticiones sin sesión, con rol de administrador o desde un canal de paciente.",
+    "stories": ["HU-024"],
+    "steps": [
+      "Llamar a cada endpoint del panel del dispensador sin sesión y verificar que responde 401",
+      "Llamar con la vinculación de un paciente y verificar que se rechaza (el rechazo con sesión de administrador se prueba en F059, prioridad 8, porque el inicio de sesión del administrador llega en F058)",
+      "Verificar que ninguna respuesta rechazada contiene datos"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F052",
+    "category": "security",
+    "priority": 7,
+    "description": "Un dispensador no puede ver ni operar citas de otro punto.",
+    "stories": ["HU-024"],
+    "steps": [
+      "Iniciar sesión como el dispensador del punto A de la semilla de prueba (requisito RP-01)",
+      "Validar el código de una cita del punto B y verificar que se rechaza",
+      "Llamar a la API para ver la prevalidación o cerrar medicamentos de una cita del punto B y verificar que responde 403",
+      "Verificar que la cita del punto B no cambió"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F053",
+    "category": "functional",
+    "priority": 7,
+    "description": "El dispensador valida el código de entrega: solo es válido en su punto, dentro de su ventana y una sola vez, y registra la hora de llegada.",
+    "stories": ["HU-025"],
+    "steps": [
+      "Escribir en el campo numérico el código de 8 dígitos de una cita de su punto dentro de la ventana y verificar que se acepta y queda registrada esa hora como llegada",
+      "Validar otra cita leyendo el QR con la cámara del navegador y verificar que se acepta",
+      "Validar otra cita con un lector físico USB que escribe el código en el campo numérico y verificar que se acepta",
+      "Validar de nuevo el mismo código y verificar que se rechaza",
+      "Validar un código de su punto antes de que inicie la ventana y verificar que se rechaza",
+      "Validar un código después de que termine la ventana (cita expirada, F039) y verificar que se rechaza",
+      "Validar el código de una cita cancelada por el usuario (F037) y el de una cita cancelada por una revocación (F040) y verificar que ambos se rechazan",
+      "Validar dentro de su ventana el código de una cita que se mantuvo tras la reverificación (F077) y verificar que se acepta"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F054",
+    "category": "functional",
+    "priority": 7,
+    "description": "El dispensador ve la prevalidación, registra la validación oficial y cierra cada medicamento como entregado o no entregado con su motivo.",
+    "stories": ["HU-026"],
+    "steps": [
+      "Validar un código y verificar que se ve el resultado de la prevalidación de cada fórmula",
+      "Validar el código de una cita a la que se agregó una segunda fórmula (F080) y verificar que se ven las dos fórmulas (paso movido desde F080)",
+      "Registrar la validación oficial y verificar que queda guardada",
+      "Cerrar un medicamento como entregado",
+      "Cerrar otro como no entregado y verificar que exige escoger uno de los motivos: afiliación inactiva; fórmula vencida o inválida; autorización no vigente; medicamento no cubierto; datos del paciente no coinciden; sin existencias pese a reserva; otro",
+      "Escoger 'otro' sin descripción y verificar que no se permite",
+      "Verificar que la fórmula con un medicamento no entregado queda cerrada y no se crea ningún pendiente"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F055",
+    "category": "security",
+    "priority": 8,
+    "description": "Las sesiones de los paneles usan cookies HttpOnly, Secure y SameSite, con protección CSRF y CORS limitado a los dominios propios, y las contraseñas se guardan con hash.",
+    "stories": ["HU-024", "HU-027"],
+    "steps": [
+      "Iniciar sesión en cada panel e inspeccionar la cookie: verificar HttpOnly, Secure y SameSite",
+      "Enviar una petición que cambia datos sin token CSRF y verificar que se rechaza",
+      "Enviar una petición desde un origen no propio y verificar que CORS la bloquea",
+      "Revisar en la base de datos que las contraseñas no están en texto plano"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F056",
+    "category": "security",
+    "priority": 7,
+    "description": "Las acciones del dispensador quedan en el registro de auditoría con quién, qué y cuándo.",
+    "stories": ["HU-034"],
+    "steps": [
+      "Como dispensador, validar un código, registrar la validación oficial y cerrar medicamentos",
+      "Consultar el registro de auditoría en la base de datos y verificar que cada acción aparece con el usuario, la acción y la fecha y hora (la pantalla de auditoría del administrador se prueba en F075, prioridad 8)",
+      "Verificar que las entradas no contienen cédulas, diagnósticos ni nombres de medicamentos"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F057",
+    "category": "privacy",
+    "priority": 7,
+    "description": "Ningún log ni registro de auditoría contiene cédulas, diagnósticos ni nombres de medicamentos.",
+    "stories": ["HU-034"],
+    "steps": [
+      "Recorrer el flujo completo (consentimiento, verificación, carga, prevalidación, agenda, recordatorio, entrega) con datos de prueba conocidos",
+      "Provocar errores en la carga de documentos y en la verificación del código",
+      "Buscar en los logs de la aplicación y en la auditoría la cédula, los diagnósticos y los nombres de medicamentos de prueba y verificar que no aparecen"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F058",
+    "category": "functional",
+    "priority": 8,
+    "description": "El administrador inicia y cierra sesión en su panel; la sesión dura como máximo 12 horas y se cierra tras 15 minutos sin actividad, y 5 contraseñas erradas bloquean la cuenta 15 minutos.",
+    "stories": ["HU-027"],
+    "steps": [
+      "Abrir el panel de administración sin sesión y verificar que pide iniciar sesión",
+      "Iniciar sesión con credenciales de administrador y verificar que se muestra su panel, separado del panel del dispensador",
+      "Ingresar 5 contraseñas erradas y luego la correcta: verificar que la cuenta está bloqueada 15 minutos",
+      "Dejar la sesión 15 minutos sin actividad y verificar que la API la rechaza",
+      "Mantener una sesión con actividad hasta cumplir 12 horas (mecanismo de prueba de tiempo) y verificar que se cierra",
+      "Cerrar sesión y verificar que la API rechaza las peticiones con la sesión anterior"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F059",
+    "category": "security",
+    "priority": 8,
+    "description": "La API del panel de administración rechaza peticiones sin sesión, con rol de dispensador o desde un canal de paciente.",
+    "stories": ["HU-027"],
+    "steps": [
+      "Llamar a cada endpoint del panel de administración sin sesión y verificar que responde 401",
+      "Llamar con sesión de dispensador y verificar que responde 403",
+      "Llamar con la vinculación de un paciente y verificar que se rechaza",
+      "Verificar que ningún dato de configuración cambió",
+      "Con sesión de administrador, llamar a cada endpoint del panel del dispensador y verificar que responde 403 sin devolver datos (paso movido desde F051)"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F060",
+    "category": "functional",
+    "priority": 8,
+    "description": "El administrador crea puntos de dispensación con nombre ficticio y horario y de cada punto solo cambia el nombre y el horario; no puede desactivar ni borrar puntos.",
+    "stories": ["HU-028"],
+    "steps": [
+      "Crear un punto con nombre ficticio y horario",
+      "Verificar que el punto aparece en la disponibilidad que ve el paciente cuando tiene existencias y ventanas",
+      "En un punto sin citas activas, cambiar el horario y verificar que las ventanas ofrecidas al paciente se ajustan",
+      "Con una cita activa en el punto, intentar un cambio de horario que deje esa ventana fuera y verificar que el panel no lo permite, muestra qué ventanas tienen citas activas y la cita sigue activa (detalle en F085)",
+      "Cambiar el nombre del punto y verificar que el paciente ve el nombre nuevo",
+      "Verificar que el panel no ofrece ninguna opción para desactivar ni borrar un punto, y que una petición directa a la API para desactivarlo o borrarlo se rechaza sin cambios"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F061",
+    "category": "functional",
+    "priority": 8,
+    "description": "El administrador configura las ventanas de 1 hora de cada punto y su capacidad.",
+    "stories": ["HU-029"],
+    "steps": [
+      "Configurar ventanas de 1 hora con una capacidad de 2 citas en un punto",
+      "Confirmar citas hasta llenar la capacidad de una ventana y verificar que esa ventana deja de ofrecerse",
+      "Aumentar la capacidad y verificar que la ventana vuelve a ofrecerse"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F062",
+    "category": "functional",
+    "priority": 8,
+    "description": "El administrador ajusta el inventario simulado por medicamento y por punto.",
+    "stories": ["HU-030"],
+    "steps": [
+      "Poner en 0 las existencias de un medicamento en un punto y verificar que ese punto deja de ofrecerse para ese medicamento",
+      "Poner existencias de nuevo y verificar que el punto vuelve a ofrecerse en una nueva consulta"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F063",
+    "category": "functional",
+    "priority": 8,
+    "description": "El administrador mantiene el catálogo de diagnósticos crónicos y la clasificación de nuevas prevalidaciones lo refleja.",
+    "stories": ["HU-031"],
+    "steps": [
+      "Agregar un diagnóstico al catálogo y prevalidar una fórmula con ese diagnóstico: verificar que se trata como crónica",
+      "Quitar el diagnóstico y prevalidar de nuevo: verificar que se trata como aguda"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F064",
+    "category": "functional",
+    "priority": 8,
+    "description": "El administrador configura los puntos, enlaces y trámites de autorización de cada EPS.",
+    "stories": ["HU-032"],
+    "steps": [
+      "Editar los trámites de autorización de Salud Total",
+      "Prevalidar una fórmula sin autorización de un paciente de Salud Total y verificar que ve los trámites actualizados",
+      "Prevalidar una fórmula sin autorización de un paciente de Sanitas y verificar que ve los trámites de Sanitas, no los de Salud Total"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F065",
+    "category": "security",
+    "priority": 8,
+    "description": "Las acciones del administrador quedan en el registro de auditoría con quién, qué y cuándo.",
+    "stories": ["HU-034"],
+    "steps": [
+      "Como administrador, crear un punto, cambiar una capacidad, ajustar inventario y editar el catálogo",
+      "Abrir la pantalla de auditoría del panel de administración y verificar que cada acción aparece con el usuario, la acción y la fecha y hora",
+      "Verificar que las entradas no contienen cédulas, diagnósticos ni nombres de medicamentos"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F066",
+    "category": "notification",
+    "priority": 6,
+    "description": "El paciente recibe por todos sus medios una notificación cuando su cita se confirma, se cancela o expira (la notificación de pérdida de lo no recogido se prueba en F099, prioridad 8, porque requiere una entrega parcial en el panel del dispensador).",
+    "stories": ["HU-020", "HU-037"],
+    "steps": [
+      "Confirmar una cita y verificar que llega la notificación de confirmación al navegador y al chat vinculados, por SMS y por correo (modo de prueba)",
+      "Cancelar la cita desde la web y verificar que llega la notificación de cancelación por todos los medios",
+      "Cancelar desde la web o el bot una solicitud con una cita activa (F094, F095) y verificar que llega la notificación de cancelación de esa cita por todos los medios",
+      "Confirmar otra cita, dejar terminar su ventana sin validar el código y verificar que llega la notificación de expiración",
+      "Revisar el texto de cada una de estas notificaciones y verificar que no contiene nombres de medicamentos ni diagnósticos"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F067",
+    "category": "functional",
+    "priority": 2,
+    "description": "El usuario desvincula en cualquier momento un paciente de su navegador.",
+    "stories": ["HU-004"],
+    "steps": [
+      "En un navegador vinculado a los pacientes A y B, desvincular a A antes de los 3 meses",
+      "Verificar que el navegador ya no muestra información de A, no permite gestiones de A y pide un código nuevo para volver a usarlo con A (que deja de recibir notificaciones de A se verifica en F042, prioridad 6)",
+      "Verificar que B sigue vinculado y funciona sin pedir código",
+      "Llamar a la API con la vinculación desvinculada de A y verificar que se rechaza"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F068",
+    "category": "functional",
+    "priority": 2,
+    "description": "El usuario desvincula en cualquier momento un paciente de su chat de Telegram.",
+    "stories": ["HU-004"],
+    "steps": [
+      "En un chat vinculado a los pacientes A y B, pedir al bot desvincular a A",
+      "Verificar que el bot ya no muestra información de A, no permite gestiones de A y pide un código nuevo para volver a usarlo con A (que deja de recibir notificaciones de A se verifica en F042, prioridad 6)",
+      "Verificar que B sigue vinculado al chat"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F069",
+    "category": "functional",
+    "priority": 5,
+    "description": "En la web, un paciente puede tener como máximo 2 solicitudes abiertas.",
+    "stories": ["HU-035"],
+    "steps": [
+      "Con un paciente sin solicitudes, iniciar dos solicitudes en la web y verificar que ambas se permiten",
+      "Intentar iniciar una tercera y verificar que se rechaza con un mensaje que explica el límite de 2",
+      "Intentar la tercera por la API directamente y verificar que también se rechaza",
+      "Dejar una solicitud con una fórmula no apta y otra con cita activa y verificar que sigue contando como abierta",
+      "Dejar una solicitud con una fórmula apta sin cita (antes de 24 horas desde la prevalidación) y verificar que sigue contando como abierta",
+      "Dejar todas las fórmulas de una de las dos solicitudes no aptas o canceladas y verificar que ahora se permite iniciar otra (los cierres por entrega o pérdida se prueban en F099, prioridad 8; por cancelar la solicitud, en F094; por inactividad, en F098)"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F070",
+    "category": "functional",
+    "priority": 5,
+    "description": "En Telegram, un paciente puede tener como máximo 2 solicitudes abiertas, contando también las iniciadas por la web.",
+    "stories": ["HU-035"],
+    "steps": [
+      "Con un paciente con una solicitud abierta iniciada en la web, iniciar otra por el bot y verificar que se permite",
+      "Intentar iniciar una tercera por el bot y verificar que se rechaza con un mensaje que explica el límite de 2",
+      "Desde otro chat vinculado al mismo paciente, intentar iniciar otra y verificar que también se rechaza"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F071",
+    "category": "functional",
+    "priority": 8,
+    "description": "El administrador crea cuentas de dispensadores con un punto asignado, el dispensador define su contraseña con el enlace que recibe por correo, y el administrador puede desactivar la cuenta.",
+    "stories": ["HU-033"],
+    "steps": [
+      "Como administrador, crear una cuenta de dispensador con un correo de prueba y asignarla al punto A; verificar que el panel no pide ni muestra ninguna contraseña",
+      "Verificar que al correo llega un enlace para definir la contraseña (modo de prueba)",
+      "Usar el enlace para definir la contraseña, iniciar sesión con esa cuenta y verificar que entra al panel del dispensador y opera una cita del punto A",
+      "Con esa cuenta, intentar validar el código de una cita del punto B y verificar que se rechaza",
+      "Como administrador, desactivar la cuenta y verificar que ya no puede iniciar sesión",
+      "Verificar en la pantalla de auditoría que la creación, la asignación y la desactivación aparecen con quién, qué y cuándo"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F072",
+    "category": "security",
+    "priority": 8,
+    "description": "Una cuenta de dispensador desactivada pierde el acceso de inmediato y solo el administrador puede gestionar cuentas de dispensadores.",
+    "stories": ["HU-033"],
+    "steps": [
+      "Iniciar sesión como dispensador y, con la sesión abierta, desactivar la cuenta desde el panel de administración",
+      "Hacer una petición a la API del panel del dispensador con la sesión abierta y verificar que se rechaza",
+      "Llamar a la API de gestión de cuentas sin sesión y verificar que responde 401",
+      "Llamar con sesión de dispensador y verificar que responde 403 y que no se creó ni cambió ninguna cuenta",
+      "Llamar con la vinculación de un paciente y verificar que se rechaza"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F073",
+    "category": "functional",
+    "priority": 8,
+    "description": "El panel de administración muestra las unidades reservadas de cada medicamento por punto y no permite bajar las existencias por debajo de lo reservado; ningún ajuste cancela citas.",
+    "stories": ["HU-030"],
+    "steps": [
+      "Dejar en el punto A 5 unidades de un medicamento y confirmar 3 citas que reservan una unidad cada una",
+      "Abrir el inventario del punto A en el panel y verificar que muestra 3 unidades reservadas",
+      "Intentar fijar las existencias en 2 y verificar que el panel no lo permite, informa que el mínimo es 3 y las existencias siguen en 5",
+      "Hacer la misma petición directamente por la API y verificar que también se rechaza",
+      "Fijar las existencias en 3 y verificar que se acepta",
+      "Verificar que las 3 citas siguen activas, sus códigos siguen siendo válidos y no se envió ninguna notificación de cancelación"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F074",
+    "category": "functional",
+    "priority": 8,
+    "description": "El panel de administración muestra las citas reservadas de cada ventana y no permite bajar su capacidad por debajo de lo reservado; ningún ajuste cancela citas.",
+    "stories": ["HU-029"],
+    "steps": [
+      "Configurar una ventana con capacidad de 4 citas y confirmar 3 citas en ella",
+      "Abrir la ventana en el panel y verificar que muestra 3 citas reservadas",
+      "Intentar fijar la capacidad en 2 y verificar que el panel no lo permite, informa que el mínimo es 3 y la capacidad sigue en 4",
+      "Hacer la misma petición directamente por la API y verificar que también se rechaza",
+      "Fijar la capacidad en 3 y verificar que se acepta y que la ventana deja de ofrecerse al paciente",
+      "Verificar que las 3 citas siguen activas, sus códigos siguen siendo válidos y no se envió ninguna notificación de cancelación"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F075",
+    "category": "functional",
+    "priority": 8,
+    "description": "El administrador consulta el registro de auditoría en una pantalla de su panel.",
+    "stories": ["HU-034"],
+    "steps": [
+      "Hacer acciones como dispensador y como administrador",
+      "Como administrador, abrir la pantalla de auditoría y verificar que lista las acciones con quién, qué y cuándo",
+      "Verificar que ninguna entrada de la pantalla muestra cédulas, diagnósticos ni nombres de medicamentos",
+      "Con sesión de dispensador, pedir la auditoría por la API y verificar que responde 403; sin sesión, que responde 401"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F076",
+    "category": "ui",
+    "priority": 8,
+    "description": "La web del paciente y los paneles del dispensador y de administración cumplen WCAG 2.1 nivel AA como referencia voluntaria de accesibilidad.",
+    "stories": [],
+    "steps": [
+      "Recorrer con solo teclado el flujo web del paciente (aviso, verificación, carga, resultado, agenda, consulta del código, cancelación) y verificar que todo se puede operar y el foco es visible",
+      "Verificar que las imágenes, incluido el QR, tienen texto alternativo y que el código numérico se muestra como texto",
+      "Verificar que el contraste de textos cumple el nivel AA y que la página se puede ampliar al 200 % sin perder contenido",
+      "Verificar que cada campo de formulario tiene etiqueta y que los errores se anuncian con texto claro",
+      "Repetir la revisión de teclado, foco visible, contraste, ampliación al 200 %, etiquetas y mensajes de error en el panel del dispensador (inicio de sesión, validación del código, cierre de medicamentos) y en el panel de administración (inicio de sesión, configuración, cuentas y auditoría)"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F077",
+    "category": "notification",
+    "priority": 6,
+    "description": "En la reverificación de dos horas antes, si una cita agrupa varias fórmulas y solo una cambió, la cita se mantiene con la misma ventana y el mismo código para los medicamentos de las demás fórmulas aptas.",
+    "stories": ["HU-022"],
+    "steps": [
+      "Confirmar una cita en un punto con medicamentos de las fórmulas 1 y 2",
+      "Antes del recordatorio de dos horas antes, dejar no vigente en la EPS simulada la autorización de un medicamento de la fórmula 2",
+      "Verificar que la fórmula 2 queda no apta, se liberan sus medicamentos en todos los puntos y se registra qué dato cambió y cuándo",
+      "Verificar que la cita sigue activa en la misma ventana y con el mismo código, solo con los medicamentos de la fórmula 1, y que la web y Telegram siguen mostrando ese código como vigente (la validación en el panel del dispensador se prueba en F053, prioridad 7)",
+      "Verificar que se notifica el motivo, que la cita se mantiene y el siguiente paso, sin nombrar medicamentos ni diagnósticos",
+      "Repetir haciendo fallar ambas fórmulas y verificar que la cita se cancela"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F078",
+    "category": "security",
+    "priority": 8,
+    "description": "El enlace para que el dispensador defina su contraseña es de un solo uso y vence a las 48 horas; el administrador nunca conoce la contraseña.",
+    "stories": ["HU-033"],
+    "steps": [
+      "Crear una cuenta de dispensador, abrir el enlace recibido por correo e intentar definir una contraseña de 14 caracteres y verificar que se rechaza",
+      "Intentar definir una contraseña común o filtrada de 15 caracteres o más y verificar que se rechaza",
+      "Definir una contraseña de 15 caracteres solo con letras minúsculas (sin mayúsculas, números ni símbolos) que no sea común ni filtrada y verificar que se acepta",
+      "Abrir de nuevo el mismo enlace y verificar que se rechaza y no permite cambiar la contraseña",
+      "Crear otra cuenta, llevar su enlace a más de 48 horas (mecanismo de prueba de tiempo) y verificar que se rechaza",
+      "Verificar que una cuenta sin contraseña definida no puede iniciar sesión",
+      "Revisar el panel de administración, la API de cuentas y la auditoría y verificar que en ningún lugar se muestra la contraseña ni el enlace completo",
+      "Verificar en la base de datos que la contraseña no está en texto plano"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F079",
+    "category": "functional",
+    "priority": 8,
+    "description": "El administrador cambia el punto asignado a un dispensador y reactiva cuentas desactivadas; las cuentas no se pueden borrar.",
+    "stories": ["HU-033"],
+    "steps": [
+      "Con un dispensador asignado al punto A, cambiarle el punto al B desde el panel de administración",
+      "Iniciar sesión como ese dispensador y verificar que opera una cita del punto B y que se rechaza el código de una cita del punto A",
+      "Desactivar la cuenta, verificar que no puede iniciar sesión, reactivarla y verificar que vuelve a iniciar sesión",
+      "Verificar que el panel no ofrece ninguna opción para borrar una cuenta y que una petición de borrado por la API se rechaza",
+      "Verificar en la pantalla de auditoría que el cambio de punto, la desactivación y la reactivación aparecen con quién, qué y cuándo"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F080",
+    "category": "functional",
+    "priority": 5,
+    "description": "En la web, una nueva fórmula que va a un punto donde la solicitud ya tiene una cita confirmada que cumple las reglas de esa fórmula se agrega a esa cita, con la misma ventana y el mismo código, sin ocupar otro cupo.",
+    "stories": ["HU-014"],
+    "steps": [
+      "Con una solicitud de dos fórmulas agudas aptas, confirmar la fórmula 1 en el punto A en una ventana del día siguiente con capacidad de 1 cita, que queda llena",
+      "Confirmar la fórmula 2 con medicamentos disponibles en el punto A y verificar que no se pide escoger otra ventana en ese punto",
+      "Verificar que existe una sola cita en el punto A, con la misma ventana y el mismo código de entrega, y que la ventana sigue con 1 cita ocupada",
+      "Verificar que se reservaron las existencias de los medicamentos de la fórmula 2",
+      "Consultar la cita y verificar que el código no cambió, y verificar en la base de datos que la cita incluye los medicamentos de las dos fórmulas (la vista en el panel del dispensador se prueba en F054, prioridad 7)"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F081",
+    "category": "functional",
+    "priority": 5,
+    "description": "En Telegram, una nueva fórmula que va a un punto donde la solicitud ya tiene una cita confirmada que cumple las reglas de esa fórmula se agrega a esa cita, con la misma ventana y el mismo código, sin ocupar otro cupo.",
+    "stories": ["HU-014"],
+    "steps": [
+      "Con una solicitud de dos fórmulas agudas aptas, confirmar por el bot la fórmula 1 en el punto A en una ventana del día siguiente",
+      "Confirmar por el bot la fórmula 2 hacia el punto A y verificar que el bot informa que se agrega a la cita existente, sin ofrecer otra ventana en ese punto",
+      "Pedir las citas al bot y verificar que hay una sola cita en el punto A, con la misma ventana y el mismo código",
+      "Verificar que la ventana no ocupó otro cupo y que se reservaron los medicamentos de la fórmula 2"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F082",
+    "category": "security",
+    "priority": 7,
+    "description": "El dispensador recupera su contraseña olvidada con un enlace por correo de un solo uso que vence en 30 minutos, con máximo 3 solicitudes por hora y la misma respuesta exista o no la cuenta.",
+    "stories": ["HU-036"],
+    "steps": [
+      "En el inicio de sesión del panel del dispensador, pedir la recuperación con el correo de una cuenta activa de la semilla de prueba (requisito RP-01) y verificar que llega un enlace al correo (modo de prueba)",
+      "Pedir la recuperación con un correo que no tiene cuenta y verificar que la respuesta en pantalla es idéntica a la del paso anterior y que no se envía ningún correo",
+      "Pedir 3 recuperaciones para el mismo correo en una hora y verificar que la cuarta no envía enlace y que la respuesta en pantalla es idéntica a las anteriores",
+      "Pedir 4 recuperaciones en una hora con un mismo correo que no tiene cuenta y verificar que la cuarta recibe la misma respuesta en pantalla (el límite se cuenta por correo ingresado, exista o no la cuenta)",
+      "Desactivar la cuenta, pedir la recuperación con su correo y verificar que la respuesta en pantalla es idéntica y que no se envía ningún enlace",
+      "Con un enlace vigente, intentar una contraseña de menos de 15 caracteres y una común o filtrada y verificar que ambas se rechazan",
+      "Abrir un enlace con más de 30 minutos (mecanismo de prueba de tiempo) y verificar que se rechaza",
+      "Con una sesión abierta en otro navegador, usar un enlace vigente para cambiar la contraseña y verificar que no se inicia sesión automáticamente, que la API rechaza la sesión abierta y que llega un correo avisando del cambio",
+      "Abrir de nuevo el mismo enlace y verificar que se rechaza",
+      "Iniciar sesión con la contraseña nueva y verificar que funciona y que la anterior ya no",
+      "Verificar que el correo y la pantalla no muestran la contraseña y que la acción no expone el enlace completo en la auditoría ni en los logs"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F083",
+    "category": "security",
+    "priority": 8,
+    "description": "El administrador recupera su contraseña olvidada con un enlace por correo de un solo uso que vence en 30 minutos, con máximo 3 solicitudes por hora y la misma respuesta exista o no la cuenta.",
+    "stories": ["HU-036"],
+    "steps": [
+      "En el inicio de sesión del panel de administración, pedir la recuperación con el correo del administrador de prueba y verificar que llega un enlace al correo (modo de prueba)",
+      "Pedir la recuperación con un correo que no tiene cuenta y verificar que la respuesta en pantalla es idéntica",
+      "Pedir 3 recuperaciones en una hora y verificar que la cuarta no envía enlace y que la respuesta en pantalla es idéntica",
+      "Abrir un enlace con más de 30 minutos y verificar que se rechaza",
+      "Con un enlace vigente, intentar una contraseña de menos de 15 caracteres y una común o filtrada y verificar que ambas se rechazan",
+      "Con una sesión de administrador abierta en otro navegador, cambiar la contraseña con un enlace vigente y verificar que no se inicia sesión automáticamente, que la sesión abierta queda cerrada y que llega un correo avisando del cambio",
+      "Abrir de nuevo el mismo enlace y verificar que se rechaza",
+      "Verificar que el panel no ofrece ninguna otra vía de recuperación distinta del correo"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F084",
+    "category": "functional",
+    "priority": 8,
+    "description": "Mientras una cuenta de dispensador no tenga contraseña definida, el administrador puede enviar un enlace nuevo, antes o después de que venza el anterior, y el nuevo anula el anterior.",
+    "stories": ["HU-033"],
+    "steps": [
+      "Crear una cuenta de dispensador y llevar su enlace de definición a más de 48 horas sin usarlo (mecanismo de prueba de tiempo)",
+      "En el panel de administración, verificar que la cuenta aparece sin contraseña definida y que se ofrece enviar un enlace nuevo",
+      "Enviar el enlace nuevo y verificar que llega al correo del dispensador (modo de prueba)",
+      "Abrir el enlace anterior y verificar que se rechaza",
+      "Antes de que venza ese enlace nuevo, enviar otro desde el panel y verificar que se permite, que llega al correo y que el enlace que seguía vigente queda anulado",
+      "Usar el último enlace dentro de las 48 horas, definir la contraseña e iniciar sesión",
+      "Verificar que, con la contraseña ya definida, el panel no ofrece enviar un enlace nuevo y que la petición directa a la API se rechaza",
+      "Verificar en la pantalla de auditoría que el reenvío aparece con quién, qué y cuándo, sin mostrar el enlace completo"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F085",
+    "category": "functional",
+    "priority": 8,
+    "description": "El panel de administración muestra qué ventanas tienen citas activas y no permite cambios de horario que las dejen por fuera ni quitar ventanas que las tengan; recortar horas sin citas, ampliar el horario o agregar ventanas se permite siempre y ningún ajuste cancela citas.",
+    "stories": ["HU-028", "HU-029"],
+    "steps": [
+      "En el punto A, con horario de 8:00 a 12:00, confirmar una cita en la ventana de 11:00",
+      "Abrir el punto A en el panel y verificar que señala la ventana de 11:00 como ventana con citas activas",
+      "Intentar quitar la ventana de 11:00 y verificar que el panel no lo permite; repetir la petición directamente por la API y verificar que también se rechaza",
+      "Intentar cambiar el horario a 8:00 a 11:00 (dejando fuera la ventana de 11:00) y verificar que el panel no lo permite, también por la API",
+      "Cambiar el horario a 9:00 a 12:00 (recortando la hora de 8:00, que no tiene citas) y verificar que se acepta, que la ventana de 8:00 deja de ofrecerse y que la cita de las 11:00 no cambia",
+      "Ampliar el horario a 8:00 a 14:00 y verificar que se acepta y que las nuevas ventanas se ofrecen al paciente",
+      "Agregar una ventana nueva y verificar que se acepta",
+      "Verificar que la cita de las 11:00 sigue activa, su código sigue siendo válido y no se envió ninguna notificación de cancelación",
+      "Cancelar la cita y verificar que ahora sí se puede quitar la ventana de 11:00"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F086",
+    "category": "functional",
+    "priority": 5,
+    "description": "En la web, si una nueva fórmula va a un punto donde la solicitud ya tiene una cita confirmada que no cumple las reglas de esa fórmula, se crea otra cita en ese punto con su propio código y su propio cupo.",
+    "stories": ["HU-014"],
+    "steps": [
+      "Con una solicitud de una fórmula aguda y una crónica, confirmar a las 9:00 la fórmula aguda en el punto A en una ventana del mismo día",
+      "Confirmar la fórmula crónica hacia el punto A y verificar que no se agrega a la cita del mismo día y que solo se ofrecen ventanas del día siguiente en ese punto",
+      "Confirmar una ventana del día siguiente y verificar que existen dos citas en el punto A, cada una con su propio código de entrega y cada una ocupando un cupo en su ventana",
+      "Repetir con una fórmula aguda que se agenda cuando la cita existente en el punto inicia en menos de una hora y verificar que se crea otra cita con su propio código y cupo",
+      "Repetir con una cita existente del día siguiente y una nueva fórmula crónica y verificar que sí se agrega a esa cita sin ocupar otro cupo"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F087",
+    "category": "functional",
+    "priority": 5,
+    "description": "En Telegram, si una nueva fórmula va a un punto donde la solicitud ya tiene una cita confirmada que no cumple las reglas de esa fórmula, se crea otra cita en ese punto con su propio código y su propio cupo.",
+    "stories": ["HU-014"],
+    "steps": [
+      "Con una solicitud de una fórmula aguda y una crónica, confirmar por el bot la fórmula aguda en el punto A en una ventana del mismo día",
+      "Confirmar por el bot la fórmula crónica hacia el punto A y verificar que el bot no la agrega a la cita existente y solo ofrece ventanas del día siguiente",
+      "Confirmar una ventana y pedir las citas al bot: verificar que hay dos citas en el punto A, cada una con su propio código de entrega",
+      "Verificar que cada cita ocupa un cupo en su ventana"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F088",
+    "category": "ui",
+    "priority": 8,
+    "description": "La web del paciente y los paneles del dispensador y de administración cumplen, con 4G lenta simulada, los umbrales 'bueno' de Core Web Vitals en el 75 % de las visitas, y el JavaScript inicial pesa máximo 200 KB comprimido.",
+    "stories": [],
+    "steps": [
+      "En la vista previa publicada, con perfil móvil y conexión 4G lenta simulada, hacer 10 mediciones de laboratorio de la pantalla principal de la web del paciente, del panel del dispensador y del panel de administración",
+      "Verificar que en al menos 8 de las 10 mediciones de cada pantalla la pantalla principal carga en 2,5 segundos o menos (LCP) y el CLS es de 0,1 o menos",
+      "Verificar que en al menos 8 de las 10 mediciones el tiempo total de bloqueo (TBT), que sustituye a la interacción en laboratorio, es de 200 milisegundos o menos",
+      "Con CPU y red limitadas, medir con una prueba automatizada la respuesta a la acción principal de cada experiencia (por ejemplo, aceptar el aviso, validar un código, guardar una configuración) y verificar que toma 200 milisegundos o menos",
+      "Medir el peso comprimido del JavaScript inicial de cada experiencia (paciente, dispensador y administrador) y verificar que ninguna supera 200 KB"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F089",
+    "category": "functional",
+    "priority": 4,
+    "description": "En la web, la prevalidación con OCR muestra 'procesando' mientras trabaja y entrega su resultado en máximo 60 segundos por solicitud.",
+    "stories": [],
+    "steps": [
+      "En el sitio publicado, con un paciente de prueba, cargar dos fórmulas y la historia clínica de una misma solicitud y pedir la prevalidación",
+      "Verificar que, mientras se procesa, la web muestra un mensaje de 'procesando'",
+      "Medir el tiempo desde que se pide la prevalidación hasta que se muestra el resultado y verificar que no supera 60 segundos",
+      "Repetir con una solicitud de una sola fórmula y verificar el mismo límite"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F090",
+    "category": "functional",
+    "priority": 4,
+    "description": "En Telegram, el bot responde o muestra 'procesando' en máximo 3 segundos, y la prevalidación con OCR entrega su resultado en máximo 60 segundos por solicitud.",
+    "stories": [],
+    "steps": [
+      "Enviar al bot mensajes de cada paso del recorrido (inicio, aceptación del aviso, cédula, código, envío de un documento, consulta de citas) y verificar que cada respuesta, o un mensaje de 'procesando', llega en máximo 3 segundos",
+      "Enviar dos fórmulas y la historia clínica de una solicitud, pedir la prevalidación y verificar que el bot muestra 'procesando' en máximo 3 segundos",
+      "Medir el tiempo hasta el mensaje con el resultado y verificar que no supera 60 segundos"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F091",
+    "category": "functional",
+    "priority": 8,
+    "description": "El 95 % de las consultas normales a la API responde en menos de 1 segundo.",
+    "stories": [],
+    "steps": [
+      "En la vista previa publicada, ejecutar una carga ligera de 100 peticiones por cada ruta normal de la API (por ejemplo, consultar citas, consultar ventanas, abrir una cita en el panel del dispensador, listar el inventario en el panel de administración)",
+      "Registrar el tiempo de respuesta de cada petición medido en el servidor",
+      "Verificar que el percentil 95 de los tiempos es menor de 1 segundo",
+      "Verificar que la muestra excluye completar una carga, iniciar la prevalidación, el webhook de Telegram y las tareas programadas (definición de 'consultas normales' aprobada, P40)"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F092",
+    "category": "privacy",
+    "priority": 5,
+    "description": "En la web, desde la pantalla de inicio y sin canal vinculado o con la vinculación vencida, el usuario revoca la autorización con la cédula y un código nuevo, sin aceptar el aviso de privacidad y sin que se cree ninguna vinculación.",
+    "stories": ["HU-001", "HU-019", "HU-020"],
+    "steps": [
+      "Preparar un paciente de prueba con documentos cargados y dos citas activas, y abrir la web en un navegador que nunca se ha vinculado",
+      "Verificar que la pantalla de inicio ofrece 'Revocar mi autorización'; escogerla y verificar que no se pide aceptar el aviso de privacidad y que se informa que la cédula se usa solo para verificar la identidad y atender la solicitud",
+      "Ingresar la cédula y verificar que se muestra exactamente el mensaje único de HU-002 y que llega un código nuevo por SMS y correo (modo de prueba)",
+      "Repetir con una cédula inexistente en la EPS simulada y verificar que se muestra el mismo mensaje y no se envía ningún código",
+      "Ingresar 3 códigos incorrectos y luego el correcto y verificar que no se revoca; pedir un código nuevo pasados 2 minutos y verificar que el anterior queda anulado",
+      "Verificar que el flujo pide declarar si quien revoca es el titular o un tercero que actúa con su autorización y que sin esa declaración no se completa; declarar 'titular'",
+      "Ingresar el código nuevo correcto y verificar que se confirma la revocación",
+      "Verificar en la base de datos que se eliminaron los datos del paciente y sus vinculaciones, que las dos citas quedaron canceladas y liberaron cupo y existencias, y que se guardó la prueba de la revocación (fecha, canal web, 'titular' tal como se declaró y versión del aviso) ligada a una huella con clave secreta de la cédula aunque no se aceptó el aviso",
+      "Verificar que el navegador no quedó vinculado a ningún paciente: al intentar consultar citas se pide aceptar el aviso y verificar la identidad",
+      "Verificar que llega una única confirmación por SMS y correo que indica que se cancelaron 2 citas activas, sin medicamentos, diagnósticos ni puntos, y ninguna notificación de cancelación por cita",
+      "Repetir desde un navegador con la vinculación vencida al paciente y verificar que la opción está disponible y la revocación procede con el código nuevo"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F093",
+    "category": "privacy",
+    "priority": 5,
+    "description": "En Telegram, desde el inicio del bot y sin chat vinculado o con la vinculación vencida, el usuario revoca la autorización con la cédula y un código nuevo, sin aceptar el aviso de privacidad y sin que se cree ninguna vinculación.",
+    "stories": ["HU-001", "HU-019", "HU-020"],
+    "steps": [
+      "Preparar un paciente de prueba con documentos cargados y una cita activa, e iniciar el bot desde un chat que nunca se ha vinculado",
+      "Verificar que el bot ofrece 'Revocar mi autorización'; escogerla y verificar que no pide aceptar el aviso de privacidad y que informa que la cédula se usa solo para verificar la identidad y atender la solicitud",
+      "Enviar la cédula y verificar que el bot responde exactamente el mensaje único de HU-002 y que llega un código nuevo por SMS y correo; repetir con una cédula inexistente y verificar el mismo mensaje sin envío de código",
+      "Verificar que el bot pide declarar si quien revoca es el titular o un tercero que actúa con su autorización y que sin esa declaración no completa la revocación; declarar 'tercero'",
+      "Enviar un código vencido (más de 10 minutos) y verificar que se rechaza; pedir uno nuevo y enviarlo correcto",
+      "Verificar que el bot confirma la revocación, que se eliminaron los datos del paciente, que la cita quedó cancelada y liberó cupo y existencias, y que se guardó la prueba de la revocación (fecha, canal Telegram, 'tercero' tal como se declaró y versión del aviso) ligada a una huella con clave secreta de la cédula",
+      "Verificar que el chat no quedó vinculado a ningún paciente",
+      "Verificar que llega una única confirmación por SMS y correo que indica que se canceló 1 cita activa, sin medicamentos, diagnósticos ni puntos, y ninguna notificación de cancelación por cita",
+      "Repetir desde un chat con la vinculación vencida al paciente y verificar que la revocación procede con el código nuevo"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F094",
+    "category": "functional",
+    "priority": 5,
+    "description": "En la web, el usuario cancela una solicitud abierta en cualquier momento: sus fórmulas abiertas quedan canceladas, sus citas activas se cancelan y liberan existencias y cupo, y la solicitud deja de contar en el límite de 2.",
+    "stories": ["HU-037", "HU-035"],
+    "steps": [
+      "Con un paciente con 2 solicitudes abiertas, una en carga de documentos y otra con una fórmula apta con cita activa y otra fórmula apta sin cita, cancelar desde la web la solicitud que está en carga",
+      "Verificar que la solicitud aparece cancelada, que no admite más cargas ni prevalidación y que ahora se permite iniciar una solicitud nueva",
+      "Cancelar la otra solicitud y verificar que su cita activa queda cancelada, que se liberan sus existencias y su cupo, que la web ya no muestra su código de entrega como vigente y que la fórmula sin cita queda cancelada",
+      "Verificar que la web no ofrece reabrir la solicitud cancelada (la notificación de cancelación de la cita y la no emisión de sus recordatorios se prueban en F066 y F045, prioridad 6)",
+      "Intentar cancelar una solicitud por la API sin vinculación vigente y con la vinculación de otro paciente y verificar que se rechaza sin cambios"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F095",
+    "category": "functional",
+    "priority": 5,
+    "description": "En Telegram, el usuario cancela una solicitud abierta en cualquier momento: sus fórmulas abiertas quedan canceladas, sus citas activas se cancelan y liberan existencias y cupo, y la solicitud deja de contar en el límite de 2.",
+    "stories": ["HU-037", "HU-035"],
+    "steps": [
+      "Con un chat vinculado a un paciente con 2 solicitudes abiertas, una de ellas iniciada en la web y con una cita activa, pedir al bot cancelar esa solicitud",
+      "Verificar que el bot confirma la cancelación, que la cita queda cancelada y que se liberan sus existencias y su cupo",
+      "Iniciar por el bot una solicitud nueva y verificar que se permite",
+      "Verificar que el bot no ofrece reabrir la solicitud cancelada"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F096",
+    "category": "functional",
+    "priority": 5,
+    "description": "En la web, pasadas 48 horas desde que no hubo disponibilidad, el usuario vuelve a validar la fórmula en la misma solicitud sin recargar documentos.",
+    "stories": ["HU-015"],
+    "steps": [
+      "Provocar el caso sin existencias en ningún punto para una fórmula apta y verificar que la web informa la espera de 48 horas y no ofrece volver a validar antes de que se cumplan",
+      "Llevar el tiempo a las 48 horas (mecanismo de prueba de tiempo de la arquitectura), agregar existencias con el mecanismo de datos de prueba y abrir la misma solicitud",
+      "Verificar que la web ofrece volver a validar en esa misma solicitud y que no pide cargar de nuevo la fórmula ni la historia clínica",
+      "Volver a validar y verificar que se repiten las reglas de la prevalidación con los datos ya obtenidos y la consulta de disponibilidad, y que ahora se ofrecen ventanas",
+      "Confirmar una cita y verificar que pertenece a la misma solicitud y que no se creó una solicitud nueva",
+      "Repetir dejando un cambio en la EPS simulada (por ejemplo, la fórmula deja de estar vigente) y verificar que al volver a validar la fórmula queda no apta"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F097",
+    "category": "functional",
+    "priority": 5,
+    "description": "En Telegram, pasadas 48 horas desde que no hubo disponibilidad, el usuario vuelve a validar la fórmula en la misma solicitud sin reenviar documentos.",
+    "stories": ["HU-015"],
+    "steps": [
+      "Provocar por el bot el caso sin existencias en ningún punto y verificar que el bot informa la espera de 48 horas y no ofrece volver a validar antes de que se cumplan",
+      "Llevar el tiempo a las 48 horas y agregar existencias con el mecanismo de datos de prueba",
+      "Pedir al bot volver a validar esa solicitud y verificar que no pide reenviar documentos",
+      "Verificar que el bot ofrece ventanas y que la cita confirmada pertenece a la misma solicitud"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F098",
+    "category": "functional",
+    "priority": 6,
+    "description": "Las solicitudes y fórmulas abandonadas se cierran solas: 24 horas sin actividad en carga o prevalidación, fórmula apta sin cita 24 horas después de prevalidar, o 24 horas después del recordatorio de 48 horas.",
+    "stories": ["HU-038", "HU-035"],
+    "steps": [
+      "Iniciar una solicitud, cargar solo una fórmula y no hacer nada más; llevar el tiempo a 23 horas y 59 minutos y verificar que sigue abierta; llevarlo a 24 horas y verificar en la web y en Telegram que la solicitud quedó cerrada y ya no cuenta en el límite de 2",
+      "En otra solicitud, cargar un documento, esperar 20 horas, recargar otro documento y verificar que el plazo de 24 horas se cuenta desde la última actividad",
+      "Prevalidar una solicitud de una sola fórmula, apta, sin confirmar cita; llevar el tiempo a 24 horas después de la prevalidación y verificar que la fórmula quedó cancelada y la solicitud deja de contar como abierta",
+      "En una solicitud con una fórmula con cita activa y otra apta sin cita, llevar el tiempo a 24 horas después de la prevalidación y verificar que solo se cierra la fórmula sin cita y que la cita activa no cambia",
+      "Provocar el caso sin disponibilidad, verificar que la fórmula no se cierra a las 24 horas de la prevalidación, dejar que salga el recordatorio de 48 horas y verificar que la fórmula se cierra 24 horas después del envío de ese recordatorio si el usuario no volvió a validar",
+      "Verificar que ningún cierre automático cancela una cita activa"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F099",
+    "category": "functional",
+    "priority": 8,
+    "description": "Si el paciente recibió parte de una fórmula y cancela o no llega a la cita del resto, lo no recogido se pierde, la fórmula se cierra y se le notifica; una solicitud con todas sus fórmulas entregadas o perdidas deja de estar abierta.",
+    "stories": ["HU-017", "HU-018", "HU-020", "HU-035"],
+    "steps": [
+      "Con una fórmula con medicamentos en los puntos A y B, entregar en el panel del dispensador los del punto A (F054)",
+      "Cancelar desde la web la cita del punto B y verificar que lo no recogido se pierde, la fórmula queda cerrada y se liberan las existencias y el cupo del punto B (pasos movidos desde F037)",
+      "Verificar que llega por todos los medios la notificación de pérdida de lo no recogido, sin medicamentos ni diagnósticos (paso movido desde F066)",
+      "Repetir dejando expirar la cita del punto B sin validar el código y verificar que la fórmula queda cerrada y llega la misma notificación (paso movido desde F039)",
+      "Verificar que la solicitud cuyas fórmulas quedaron todas entregadas o perdidas deja de contar como abierta y que se permite iniciar otra (pasos movidos desde F069)"
+    ],
+    "passes": false
+  },
+  {
+    "id": "F100",
+    "category": "privacy",
+    "priority": 8,
+    "description": "Al revocar la autorización de un paciente con citas ya entregadas, de cada cita entregada solo queda el punto, la ventana, la fecha y el motivo, sin datos del paciente.",
+    "stories": ["HU-019"],
+    "steps": [
+      "Con un paciente de prueba con una cita entregada en el panel del dispensador (F054), revocar la autorización desde la web con la cédula, la declaración y un código nuevo",
+      "Verificar en la base de datos que de la cita entregada solo queda el punto, la ventana, la fecha y el motivo, sin cédula, nombre, diagnósticos ni medicamentos (paso movido desde F040)",
+      "Verificar que la confirmación de revocación indica que no se canceló ninguna cita activa y no menciona la cita entregada, sus medicamentos ni el punto"
+    ],
+    "passes": false
+  }
+]

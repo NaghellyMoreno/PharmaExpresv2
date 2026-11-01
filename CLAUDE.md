@@ -2,7 +2,7 @@
 
 Prototipo funcional de pre-dispensación farmacéutica, por aplicación web y bot de Telegram, para los puntos de Disfarma en Manizales. Tiene tres experiencias: la del paciente (web y Telegram), el panel del dispensador y el panel de administración. Sistemas externos simulados (EPS, inventario, puntos, validación oficial); Telegram, SMS y correo son reales. Se publica en Vercel.
 
-**Fuente de verdad del producto:** `docs/00-contexto-producto.md` (versión 3, aprobada). Ningún requisito, diseño ni código puede contradecirlo. Léelo por secciones, según la tarea.
+**Fuente de verdad del producto:** `docs/00-contexto-producto.md` (versión 6, aprobada). Ningún requisito, diseño ni código puede contradecirlo. Léelo por secciones, según la tarea.
 
 **Sistema de agentes:** los agentes y skills son genéricos y están instalados en `~/.claude`. Las reglas propias de este proyecto para cada agente están en `docs/guia-agentes.md`.
 
@@ -47,7 +47,7 @@ Prototipo funcional de pre-dispensación farmacéutica, por aplicación web y bo
 ## Invariantes del producto (el código nunca los rompe)
 1. Ninguna notificación ni enlace incluye nombres de medicamentos ni diagnósticos; los enlaces al bot tampoco llevan cédula ni otros datos sensibles (secciones 3.1 y 3.6).
 2. Nunca hay una cita sin medicamentos reservados ni una ventana por encima de su capacidad: cero sobre-reservas. Las citas de una misma fórmula se confirman todas o ninguna (sección 3.5).
-3. No se registra nada antes de aceptar el tratamiento de datos. La autorización de datos de salud se pide antes de cargar cualquier documento (sección 3.2).
+3. No se registra nada antes de aceptar el tratamiento de datos. La única excepción es la revocación: se puede revocar sin aceptar el aviso, y solo se conserva la prueba que exige la sección 3.2. La autorización de datos de salud se pide antes de cargar cualquier documento (sección 3.2).
 4. Los identificadores de Telegram no prueban identidad. Solo la cédula y el código de un solo uso la verifican (secciones 3.1 y 3.2).
 5. Cada fórmula es todo o nada, y todo resultado de prevalidación se presenta como preliminar (sección 3.4).
 6. Nunca se usan datos reales de pacientes (secciones 3.2 y 3.10).

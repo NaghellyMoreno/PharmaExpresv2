@@ -1,6 +1,6 @@
 # Pharma Express - Contexto para agentes de IA
 
-Versión: 3
+Versión: 6
 Estado: Aprobado
 Propósito: dar a cualquier agente de IA que trabaje en Pharma Express las reglas de trabajo, el dominio y el contexto del producto, sin importar la tarea que realice.
 
@@ -75,16 +75,22 @@ Esta sección describe cómo funciona Pharma Express según lo aprobado por la r
 - El bot de Telegram solo escribe después de que la persona lo inicia.
 - Los identificadores de Telegram (usuario, número de chat, nombre visible) no prueban la identidad de nadie.
 - Se pueden usar enlaces directos al bot de Telegram como apoyo opcional. Esos enlaces nunca llevan cédula, diagnósticos, medicamentos ni otros datos sensibles.
+- La web del paciente y los paneles del dispensador y del administrador toman WCAG 2.1 nivel AA como referencia voluntaria de accesibilidad.
 
 ## 3.2. Identidad y consentimiento
 
 - Pharma Express no registra pacientes ni crea cuentas para ellos. Los datos de afiliación y contacto vienen de la EPS simulada.
-- Antes de pedir cualquier dato, el sistema muestra el aviso de privacidad y pide aceptar el tratamiento de datos, con la declaración "soy el titular o actúo con su autorización". Se registra si aceptó el titular o un tercero, la fecha y el canal. Si la persona no acepta, no se registra nada.
+- Antes de pedir cualquier dato, el sistema muestra el aviso de privacidad y pide aceptar el tratamiento de datos, con la declaración "soy el titular o actúo con su autorización". Se registra si aceptó el titular o un tercero, la fecha y el canal. Si la persona no acepta, no se registra nada. La única excepción es la revocación, descrita más abajo.
 - La identidad se verifica con la cédula y un código de un solo uso. El código llega por SMS al celular registrado en la EPS y, si existe, al correo registrado. Los envíos son reales; las pruebas usan números y correos propios de la responsable del proyecto.
+- Al pedir el código, el mensaje es el mismo exista o no la cédula en la EPS simulada, para no revelar quién está afiliado: "Si la cédula está afiliada a Salud Total o Sanitas, enviamos un código al celular registrado en tu EPS y al correo, si lo tiene. Si no te llega en 2 minutos, puedes pedir un código nuevo, actualizar tus datos en tu EPS o acudir a la atención presencial."
 - El código dura 10 minutos y admite 3 intentos. Si vence o se agotan los intentos, se ofrecen tres caminos: pedir un código nuevo, recibir orientación para actualizar los datos en la EPS o acudir a la atención presencial.
 - La actualización de datos y el cambio de celular o correo se hacen en la EPS. El sistema solo orienta.
 - La autorización para tratar datos de salud es separada y se pide antes de cargar cualquier documento.
-- El titular puede revocar el consentimiento y pedir que se eliminen sus datos. Si tiene reservas activas, se eliminan y el cupo y los medicamentos quedan disponibles para otras personas.
+- El titular puede revocar el consentimiento y pedir que se eliminen sus datos. Para revocar se verifica la identidad con un código nuevo pedido en ese momento, aunque el canal esté vinculado. Como el sistema no distingue al titular de un tercero (sección 3.3), revoca quien supere esa verificación.
+- La opción "Revocar mi autorización" está en la pantalla de inicio de la web y del bot, también sin canal vinculado o con la vinculación vencida, porque el Decreto 1377 de 2013 (artículo 9) exige mecanismos gratuitos y de fácil acceso. Para revocar no se pide aceptar el aviso de privacidad; se informa que la cédula se usa solo para verificar la identidad y atender la solicitud. La revocación no crea ninguna vinculación.
+- La revocación elimina de inmediato los documentos cargados, los datos del OCR, los resultados de prevalidación, las solicitudes, las citas, las vinculaciones de chats y navegadores y los recordatorios programados. Las citas activas se cancelan y el cupo y los medicamentos quedan disponibles para otras personas.
+- Se conserva la prueba del consentimiento y de su revocación (fecha, canal, si fue el titular o un tercero y versión del aviso), ligada a una huella cifrada de la cédula y no a la cédula. El Decreto 1377 de 2013 (artículo 8) exige conservar la prueba de la autorización. De cada cita cancelada o entregada queda solo el punto, la ventana, la fecha y el motivo, sin datos del paciente.
+- Al revocar se envía una confirmación por SMS y correo, para que el titular se entere si lo hizo un tercero. La confirmación indica cuántas citas activas se cancelaron, sin medicamentos ni puntos (por ejemplo: "Revocaste tu autorización. Eliminamos tus datos y cancelamos tus 2 citas activas."); no se envía una notificación de cancelación por cada cita. Los datos de la EPS simulada no se modifican.
 
 ## 3.3. Vinculación de canales y apoyo de terceros
 
@@ -97,10 +103,13 @@ Esta sección describe cómo funciona Pharma Express según lo aprobado por la r
 
 ## 3.4. Documentos y prevalidación
 
-- El usuario carga las fórmulas y la historia clínica, en foto o PDF, por la web o por Telegram.
+- El usuario carga las fórmulas y la historia clínica, en foto o PDF, por la web o por Telegram. Se carga una sola historia clínica por solicitud.
+- Formatos aceptados: JPG, PNG, HEIC y PDF. Máximo 10 MB por archivo y PDF de hasta 5 páginas.
 - Los datos de los documentos se obtienen con reconocimiento automático de texto (OCR). Si el reconocimiento no obtiene los datos, aplica la regla siguiente.
-- Si de un documento no se obtienen los datos (ilegible, incompleto, sin diagnóstico o sin coincidencia con la EPS simulada), se pide cargarlo de nuevo. Si el problema persiste, la fórmula queda no apta y se orienta a la atención presencial.
+- Si de un documento no se obtienen los datos (ilegible, incompleto, sin diagnóstico o sin coincidencia con la EPS simulada), se pide cargarlo de nuevo. Cada documento admite 3 cargas en total: la inicial y 2 recargas. Si el problema persiste en la tercera carga, la fórmula queda no apta y se orienta a la atención presencial.
 - El tipo de tratamiento sale del diagnóstico. Un catálogo configurable define qué diagnósticos son crónicos; cualquier otro se trata como agudo.
+- El diagnóstico de cada fórmula es un dato de la EPS simulada, y la historia clínica debe contenerlo; si no lo contiene, aplica la regla de recarga. El sistema nunca escoge por su cuenta entre varios diagnósticos de la historia clínica. Base: el Decreto 2200 de 2005 (artículos 16 y 17) exige que la fórmula permita relacionar los medicamentos con el diagnóstico y que este conste en la historia clínica, pero no que la fórmula lo traiga.
+- Si la historia clínica falla en la tercera carga por ser ilegible o estar incompleta, quedan no aptas todas las fórmulas de la solicitud. Si se lee pero le falta el diagnóstico de una fórmula, solo esa fórmula queda no apta.
 - La prevalidación sigue este orden:
   1. Afiliación activa. Se verifica una vez por solicitud. Si está inactiva, se detiene toda la solicitud y se orienta hacia la EPS.
   2. Vigencia de la fórmula. Es un dato de la EPS simulada; en los datos de prueba va de 8 a 9 meses después de la consulta. No se usa la regla antigua de 30 días. Si no está vigente, se indica que requiere una nueva valoración médica.
@@ -121,6 +130,8 @@ Esta sección describe cómo funciona Pharma Express según lo aprobado por la r
   - Si una cita incluye algún medicamento crónico, aplica la regla del crónico.
 - La cita es una ventana de 1 hora. Si el paciente llega antes, espera a que inicie. La reserva expira al terminar la ventana.
 - La reserva se hace por solicitud. Si los medicamentos están en puntos distintos, se agenda una cita por punto.
+- Si una fórmula va a un punto donde la solicitud ya tiene una cita confirmada y esa cita cumple las reglas de la fórmula (por ejemplo, el día permitido para crónicos), se agrega a esa cita: misma ventana y mismo código de entrega, sin ocupar otro cupo. Solo reserva sus medicamentos. Si no las cumple, se crea otra cita en ese punto, con su propio código y su cupo.
+- Un paciente puede tener como máximo 2 solicitudes abiertas. Una solicitud está abierta mientras alguna de sus fórmulas siga en carga, prevalidación, agenda o con cita activa, y se cierra cuando cada fórmula quedó entregada, no apta, cancelada o perdida por no recogerla.
 - La confirmación es atómica: las citas de una misma fórmula se reservan todas o ninguna. Si otra persona confirmó antes, se informa y se muestran las opciones actualizadas.
 - Cada cita tiene un código de entrega de un solo uso, en QR y numérico. El usuario lo consulta en la web o en Telegram cuando lo necesita; no tiene que guardarlo al agendar.
 - No hay reprogramación. El usuario puede cancelar en cualquier momento. Para obtener otra cita debe iniciar una nueva solicitud.
@@ -132,10 +143,10 @@ Esta sección describe cómo funciona Pharma Express según lo aprobado por la r
 - Cada notificación se envía por todos los medios del paciente: notificación de la web a los navegadores vinculados, Telegram a los chats vinculados, SMS al celular registrado y correo si existe.
 - Ninguna notificación, por ningún medio, incluye nombres de medicamentos ni diagnósticos.
 - Hay dos recordatorios por cita:
-  - Entre las 19:00 y las 21:00 del día anterior. No se envía si la cita se agendó después de las 21:00 ni en citas del mismo día.
-  - Una hora antes de la cita. Lo reciben todos.
+  - Entre las 19:00 y las 21:00 del día anterior. No se envía en citas del mismo día ni si la cita se agendó después de las 19:00 del día anterior: en ese caso la confirmación cumple esa función.
+  - Dos horas antes de la cita. Sale como máximo 10 minutos después de la hora programada. No se envía si la cita se agendó con menos de 2 horas de anticipación.
 - Los recordatorios solo informan y ofrecen cancelar. No piden confirmación.
-- Al enviar el recordatorio de una hora antes, el sistema vuelve a verificar afiliación, vigencia y autorizaciones. Si algo cambió, cancela las citas de la fórmula, libera los medicamentos y cupos, deja la fórmula no apta, registra qué dato cambió y cuándo, y notifica el motivo y el siguiente paso.
+- Al enviar el recordatorio de dos horas antes, el sistema vuelve a verificar afiliación, vigencia y autorizaciones. Si algo cambió en una fórmula, esa fórmula queda no apta, se liberan sus medicamentos en todos los puntos y se registra qué dato cambió y cuándo. Una cita que queda sin medicamentos se cancela y libera su cupo; una cita que conserva medicamentos de otras fórmulas aptas se mantiene, con la misma ventana y el mismo código. Si lo que cambió es la afiliación, afecta a todas las fórmulas de la solicitud. Se notifica el motivo, si la cita se mantiene y el siguiente paso, sin nombrar medicamentos; el detalle se consulta en la web o en Telegram. Si ese recordatorio no se envía por la poca anticipación, tampoco se reverifica: la prevalidación es reciente.
 - No existe cita de continuidad. Después de entregar una fórmula crónica, el sistema avisa 2 días antes de la siguiente fecha habilitada para que el usuario inicie una nueva prevalidación.
 - El sistema no avisa cuando llega un medicamento ni cuando la EPS aprueba una autorización.
 
@@ -186,16 +197,19 @@ Esta sección describe cómo funciona Pharma Express según lo aprobado por la r
 
 - El administrador es un rol con usuario propio y un panel web separado del panel del dispensador y de la experiencia del paciente.
 - Desde su panel configura: puntos de dispensación (nombre ficticio y horario), ventanas y su capacidad, inventario simulado por punto, catálogo de diagnósticos crónicos, y puntos, enlaces y trámites de autorización de cada EPS.
-- Pendiente de confirmar: el administrador crea las cuentas de los dispensadores, les asigna un punto y las desactiva.
+- El administrador crea las cuentas de los dispensadores y les asigna un punto. El dispensador recibe en su correo un enlace de un solo uso, que vence en 48 horas, para definir su contraseña. El administrador nunca la conoce. Si el enlace vence sin usarse, el administrador puede enviar uno nuevo, que anula el anterior.
+- Dispensadores y administradores pueden recuperar una contraseña olvidada con un enlace por correo, de un solo uso, que vence en 30 minutos, con máximo 3 solicitudes por hora. La respuesta es la misma exista o no la cuenta. Después del cambio no se inicia sesión automáticamente, se cierran todas las sesiones abiertas y se avisa por correo. Si el administrador pierde acceso a su correo, la responsable del proyecto lo restablece directamente en la base de datos.
+- El administrador puede cambiar el punto asignado y desactivar o reactivar cuentas. Las cuentas no se borran, para conservar la auditoría.
+- El panel no permite bajar el inventario ni la capacidad de una ventana por debajo de lo ya reservado, y muestra lo reservado. Tampoco permite cambios de horario que dejen por fuera ventanas con citas activas ni quitar ventanas que las tengan, y muestra cuáles son. Recortar horas sin citas, ampliar el horario o agregar ventanas se permite siempre. Ningún ajuste de configuración cancela citas.
 
 ## 3.13. Seguridad
 
 1. La autenticación y la autorización se verifican en el backend en cada petición, con guards y middleware de NestJS. La interfaz nunca es la única barrera.
 2. Denegar por defecto: todo endpoint de un panel exige un rol explícito, y el paciente solo accede con una vinculación vigente.
 3. Mínimo privilegio: cada rol solo accede a las funciones de su panel, y el dispensador solo opera las citas de su punto.
-4. Las contraseñas de dispensadores y administradores se guardan con un algoritmo de hash robusto. Las sesiones vencen y usan cookies HttpOnly, Secure y SameSite, con protección CSRF y CORS limitado a los dominios propios.
-5. Hay límites de intentos y de frecuencia para el código de un solo uso, el inicio de sesión y la carga de documentos.
-6. Toda entrada se valida en el backend y las consultas a la base de datos son parametrizadas. Los archivos cargados se validan por tipo y tamaño, se guardan en almacenamiento privado y solo se accede a ellos con enlaces temporales.
+4. Las contraseñas de dispensadores y administradores se guardan con un algoritmo de hash robusto. Las sesiones duran como máximo 12 horas y se cierran tras 30 minutos sin actividad en el panel del dispensador y 15 minutos en el del administrador. Tras 5 contraseñas erradas, la cuenta se bloquea 15 minutos. Las sesiones usan cookies HttpOnly, Secure y SameSite, nunca el almacenamiento local del navegador, con protección CSRF y CORS limitado a los dominios propios.
+5. Hay límites de intentos y de frecuencia para el código de un solo uso, el inicio de sesión y la carga de documentos. Se puede pedir un código nuevo cada 2 minutos, con máximo 5 por cédula por hora, y cada código nuevo anula el anterior. Se cargan máximo 20 archivos por paciente por hora.
+6. Toda entrada se valida en el backend y las consultas a la base de datos son parametrizadas. Los archivos cargados se validan por su contenido real y su tamaño, no por la extensión ni por el tipo que declara el navegador; se renombran con un identificador aleatorio; las imágenes se vuelven a codificar, lo que borra sus metadatos (como la ubicación); se guardan en almacenamiento privado y solo se accede a ellos con enlaces temporales.
 7. Todo el sitio usa HTTPS y cabeceras de seguridad (HSTS, Content-Security-Policy, X-Content-Type-Options).
 8. El webhook de Telegram y las tareas programadas verifican un secreto antes de ejecutarse.
 9. Las acciones de administradores y dispensadores quedan en un registro de auditoría (quién, qué y cuándo).
@@ -205,4 +219,15 @@ Esta sección describe cómo funciona Pharma Express según lo aprobado por la r
 ## 3.14. Publicación
 
 - El prototipo se publica en Vercel.
+- Vercel no acepta peticiones de más de 4,5 MB a una función, así que los archivos de hasta 10 MB no pueden pasar por el backend al subirse.
 - El repositorio git y su remoto los crea y administra la responsable del proyecto.
+
+## 3.15. Rendimiento
+
+Las mediciones de la web se hacen con conexión 4G lenta simulada, porque muchos usuarios están en zonas rurales.
+
+- Web del paciente y paneles, medidos en el 75 % de las visitas (umbrales "bueno" de Core Web Vitals de Google): la pantalla principal carga en 2,5 segundos o menos, la respuesta a una interacción toma 200 milisegundos o menos y el contenido no salta (CLS de 0,1 o menos).
+- El JavaScript inicial de la web pesa máximo 200 KB comprimido.
+- El 95 % de las consultas normales a la API responde en menos de 1 segundo.
+- La prevalidación con OCR entrega su resultado en máximo 60 segundos por solicitud y muestra un mensaje de "procesando" mientras tanto.
+- El bot de Telegram responde, o muestra "procesando", en máximo 3 segundos.
