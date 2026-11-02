@@ -95,14 +95,19 @@ describe('P-01 Inicio', () => {
     expect(screen.getByRole('button', { name: 'Aceptar' })).toBeInTheDocument();
   });
 
-  it('el botón de P-02 no envía la cédula a ninguna ruta (criterio 5.3)', async () => {
+  // F003 sustituye el criterio 5.3 de F001 (el esqueleto de P-02 no enviaba nada): ahora la cédula va a /identity/otp-requests.
+  it('tras aceptar, el botón de P-02 pide el código a /identity/otp-requests y no a otra ruta', async () => {
+    fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
+      if (url.endsWith('/identity/otp-requests')) return json({ challengeId: 'c-1', message: 'Mensaje de prueba', resendAvailableInSeconds: 120 }, 202);
+      return init?.method === 'POST' ? new Response(null, { status: 204 }) : json(notice);
+    });
     render(<App />);
     await userEvent.click(await screen.findByLabelText('Soy el titular'));
     await userEvent.click(screen.getByRole('button', { name: 'Aceptar' }));
     await userEvent.type(await screen.findByLabelText('Cédula'), '1000000001');
     await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(fetchMock.mock.calls.map(([u]) => u).join()).not.toContain('identity');
+    expect(await screen.findByText('Mensaje de prueba')).toBeInTheDocument();
+    expect(posts().map(([u]) => u)).toEqual(['/api/v1/consents/acceptance', '/api/v1/identity/otp-requests']);
   });
 
   it('si el aviso no carga muestra el error y "Reintentar", sin botones de aceptar ni cédula, y reintentar funciona', async () => {

@@ -259,10 +259,7 @@ test.describe('paso 4: aceptar', () => {
     await expect(page.getByLabel(S.cedula, { exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: S.next, exact: true })).toBeVisible();
     await noSeriousViolations(page);
-    // 5.3: el botón de P-02 no envía nada y no hay peticiones a /identity.
-    await page.getByLabel(S.cedula, { exact: true }).fill('1000000001');
-    await page.getByRole('button', { name: S.next, exact: true }).click();
-    expect(seen.filter((r) => r.url().includes('/identity'))).toEqual([]);
+    // 5.3 de F001 (el esqueleto de P-02 no enviaba nada) lo sustituye F003: ver e2e/tests/f003.spec.ts.
     expect(seen.filter((r) => r.method() === 'POST')).toHaveLength(1);
     await context.close();
   });

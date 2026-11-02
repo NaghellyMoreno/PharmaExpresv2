@@ -6,3 +6,5 @@ input[type='text'] { display: block; margin-top: 0.25rem; padding: 0.5rem; font-
 button { font-size: 1rem; padding: 0.6rem 1.2rem; margin-right: 0.5rem; cursor: pointer; }
 button:disabled { cursor: not-allowed; }
 a { color: #0b4f9c; }
+[role='alert'] { color: #9b1c1c; margin: 0.5rem 0; }
+[role='status'] { margin: 0.5rem 0; }

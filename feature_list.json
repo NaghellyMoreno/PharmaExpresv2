@@ -27,7 +27,7 @@
       "Iniciar de nuevo y aceptar como titular (el registro de la aceptación en la base de datos se verifica en F004, al completar la verificación de identidad)",
       "Verificar que solo después de aceptar se pide la cédula"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "F003",

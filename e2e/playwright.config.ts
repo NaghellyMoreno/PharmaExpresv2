@@ -8,11 +8,19 @@ const WEB_ORIGIN = `http://localhost:${WEB_PORT}`;
 
 // Valores solo para pruebas, sin secretos reales. La web y la API comparten origen por el proxy de Vite,
 // igual que en Vercel (ADR 0002); Chromium trata localhost como contexto seguro y acepta cookies Secure.
+// F003: las claves del código y de la huella se comparten con las pruebas (que recalculan la huella). Aleatorias por corrida.
+process.env.CEDULA_FINGERPRINT_KEY ??= randomBytes(32).toString('base64url');
+process.env.OTP_PEPPER ??= randomBytes(32).toString('base64url');
+
 const apiEnv = {
   PORT: String(API_PORT),
   DATABASE_URL: process.env.DATABASE_URL ?? 'postgres://pharma:pharma@localhost:5433/pharma',
   APP_ORIGIN: WEB_ORIGIN,
   CONSENT_COOKIE_KEY: randomBytes(32).toString('base64url'),
+  CEDULA_FINGERPRINT_KEY: process.env.CEDULA_FINGERPRINT_KEY,
+  OTP_PEPPER: process.env.OTP_PEPPER,
+  // Modo capture (ADR 0009): los mensajes quedan en app.captured_messages y no sale nada.
+  MESSAGING_MODE: 'capture',
 };
 
 export default defineConfig({

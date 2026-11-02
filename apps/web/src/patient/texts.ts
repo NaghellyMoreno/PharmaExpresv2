@@ -13,6 +13,18 @@ export const TEXTS = {
   revokeSoon: 'Esta opción estará disponible próximamente.',
   cedula: 'Cédula',
   continue: 'Continuar',
+  // P-02 (F003). Las cadenas con asterisco del anexo del contrato son Inferido hasta que la usuaria las confirme.
+  codeLabel: 'Código de verificación',
+  verify: 'Verificar',
+  verified: 'Identidad verificada',
+  codeIncorrect: 'El código no es correcto. Revise los 6 dígitos e intente de nuevo.',
+  codeUsed: 'Este código ya se usó. Pida un código nuevo.',
+  requestError: 'No pudimos enviar el código. Intente de nuevo.',
+  cedulaInvalid: 'Cédula inválida. Escriba entre 5 y 12 dígitos.',
+  codeIncomplete: 'Código incompleto. Escriba los 6 dígitos.',
+  verifyAnother: 'Verificar otro código',
+  // Fuera del anexo: errores de red o del servidor al verificar, y códigos vencidos o con intentos agotados (F005).
+  verifyError: 'No pudimos verificar el código. Intente de nuevo.',
 } as const;
 
 /** Ruta de revocación (P-10). El enlace nunca lleva parámetros (invariante 1). */

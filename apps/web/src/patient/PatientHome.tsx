@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { acceptPrivacyNotice, fetchPrivacyNotice, type Declarant, type PrivacyNotice } from './api';
-import { CedulaStep } from './CedulaStep';
+import { IdentityStep } from './IdentityStep';
 import { REVOKE_PATH, TEXTS } from './texts';
 
 type View =
@@ -23,7 +23,7 @@ export function PatientHome() {
   }, []);
   useEffect(load, [load]);
 
-  if (view.name === 'accepted') return <CedulaStep />;
+  if (view.name === 'accepted') return <IdentityStep />;
 
   return (
     <main>

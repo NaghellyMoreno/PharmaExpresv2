@@ -10,6 +10,11 @@ export DATABASE_URL="${DATABASE_URL:-postgres://pharma:pharma@localhost:5433/pha
 export SCHEDULER_MODE="${SCHEDULER_MODE:-direct}"
 export MESSAGING_MODE="${MESSAGING_MODE:-capture}"
 export OCR_PROVIDER="${OCR_PROVIDER:-capture}"
+# Claves solo para la prueba de humo: aleatorias en cada corrida, sin secretos reales. Si ya las exportaste, se respetan.
+random_key() { node -e "console.log(require('node:crypto').randomBytes(32).toString('base64url'))"; }
+export CONSENT_COOKIE_KEY="${CONSENT_COOKIE_KEY:-$(random_key)}"
+export CEDULA_FINGERPRINT_KEY="${CEDULA_FINGERPRINT_KEY:-$(random_key)}"
+export OTP_PEPPER="${OTP_PEPPER:-$(random_key)}"
 SMOKE_PORT=3999
 mkdir -p .run
 
@@ -48,6 +53,8 @@ run_quiet pnpm test:e2e
 grep -E "passed|failed" .run/last.log || true
 
 echo "== Prueba de humo (GET /api/v1/health)"
+# Sin respuesta vieja: si la API no arranca, la prueba de humo debe fallar.
+rm -f .run/health.json
 PORT=$SMOKE_PORT node apps/api/dist/main.js >/dev/null 2>&1 &
 API_PID=$!
 trap 'kill $API_PID 2>/dev/null || true' EXIT
