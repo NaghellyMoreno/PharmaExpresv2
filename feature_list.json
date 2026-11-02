@@ -63,7 +63,7 @@
       "Verificar que al enviar la cédula del paciente de prueba el bot responde exactamente: 'Si la cédula está afiliada a Salud Total o Sanitas, enviamos un código al celular registrado en tu EPS y al correo, si lo tiene. Si no te llega en 2 minutos, puedes pedir un código nuevo, actualizar tus datos en tu EPS o acudir a la atención presencial.'",
       "Enviar una cédula que no existe en la EPS simulada y verificar que el bot responde exactamente el mismo mensaje, que no se envía ningún código y que no se crea ninguna cuenta"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "F005",
