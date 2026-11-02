@@ -42,6 +42,11 @@ grep -E "Test Files|Tests " .run/last.log || true
 echo "== Compilación"
 run_quiet pnpm build
 
+echo "== Pruebas de interfaz (Playwright y axe, Chromium)"
+pnpm --filter e2e install:browsers >.run/browsers.log 2>&1 || { cat .run/browsers.log; exit 1; }
+run_quiet pnpm test:e2e
+grep -E "passed|failed" .run/last.log || true
+
 echo "== Prueba de humo (GET /api/v1/health)"
 PORT=$SMOKE_PORT node apps/api/dist/main.js >/dev/null 2>&1 &
 API_PID=$!

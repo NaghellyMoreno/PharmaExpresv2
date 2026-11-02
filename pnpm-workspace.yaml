@@ -1,6 +1,7 @@
 packages:
   - apps/*
   - packages/*
+  - e2e
 
 # Scripts de instalación permitidos (pnpm 12 los bloquea por defecto).
 allowBuilds:

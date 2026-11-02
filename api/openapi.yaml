@@ -1819,7 +1819,7 @@ components:
       type: object
       required: [version, title, body, declaration, revocationOption]
       properties:
-        version: { type: string, examples: ['2026-10-v1'] }
+        version: { type: string, maxLength: 32, examples: ['2026-10-v1'] }
         title: { type: string }
         body: { type: string }
         declaration: { type: string, examples: ['Soy el titular o actúo con su autorización'] }

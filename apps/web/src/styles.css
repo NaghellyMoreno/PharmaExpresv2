@@ -1,0 +1,8 @@
+body { font-family: system-ui, sans-serif; line-height: 1.5; color: #1a1a1a; background: #fff; margin: 0; }
+main { max-width: 40rem; margin: 0 auto; padding: 1.5rem 1rem; }
+fieldset { border: 1px solid #595959; margin: 1rem 0; padding: 0.75rem 1rem; }
+label { display: block; margin: 0.5rem 0; }
+input[type='text'] { display: block; margin-top: 0.25rem; padding: 0.5rem; font-size: 1rem; }
+button { font-size: 1rem; padding: 0.6rem 1.2rem; margin-right: 0.5rem; cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+a { color: #0b4f9c; }
