@@ -25,6 +25,9 @@ const APPROVED_PUBLIC = [
   'POST /staff/password-changes',
 ];
 
+// Rutas públicas que además exigen la cookie firmada de consentimiento (invariante 3, F003 criterio T.2).
+const APPROVED_CONSENT_REQUIRED = ['POST /identity/otp-requests', 'POST /identity/verifications'];
+
 // Webhook de Telegram: protegido por secreto, sin sesión ni Origin (ADR 0008 y 0016).
 const APPROVED_TELEGRAM_WEBHOOK = ['POST /telegram/webhook'];
 
@@ -58,6 +61,7 @@ function problems(routes: RouteInfo[]): string[] {
     } else if (mark.kind === 'public') {
       if (!APPROVED_PUBLIC.includes(route)) out.push(`${route}: pública fuera de la lista aprobada`);
       if (route.startsWith('POST') && !mark.checkOrigin) out.push(`${route}: pública que cambia datos sin control de Origin`);
+      if (APPROVED_CONSENT_REQUIRED.includes(route) && !mark.requireConsent) out.push(`${route}: debe exigir la cookie de consentimiento`);
     }
   }
   return out;
@@ -78,7 +82,7 @@ describe('marcas de acceso de las rutas (ADR 0016)', () => {
       [...m.controllers.values()].map((w) => w.metatype as Function),
     );
     const routes = listRoutes(controllers);
-    expect(routes.map((r) => r.route)).toEqual(expect.arrayContaining(['GET /privacy-notice', 'POST /consents/acceptance', 'POST /telegram/webhook']));
+    expect(routes.map((r) => r.route)).toEqual(expect.arrayContaining(['GET /privacy-notice', 'POST /consents/acceptance', 'POST /telegram/webhook', ...APPROVED_CONSENT_REQUIRED]));
     expect(problems(routes)).toEqual([]);
   });
 
@@ -91,6 +95,16 @@ describe('marcas de acceso de las rutas (ADR 0016)', () => {
       @TelegramWebhook() @Post('otro-webhook') cuatro() {}
     }
     expect(problems(listRoutes([SinMarca]))).toHaveLength(5);
+  });
+
+  // Criterio T.2 de F003: una ruta de identidad sin la marca de consentimiento hace fallar la enumeración.
+  it('falla si POST /identity/otp-requests no exige la cookie de consentimiento (control positivo)', () => {
+    @Controller('identity')
+    class SinConsentimiento {
+      @Public({ checkOrigin: true }) @Post('otp-requests') uno() {}
+      @Public({ checkOrigin: true, requireConsent: true }) @Post('verifications') dos() {}
+    }
+    expect(problems(listRoutes([SinConsentimiento]))).toEqual(['POST /identity/otp-requests: debe exigir la cookie de consentimiento']);
   });
 
   // Criterio T.2: el webhook no exige Origin y POST /consents/acceptance sigue exigiéndolo.
