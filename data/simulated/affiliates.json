@@ -1,0 +1,26 @@
+[
+  {
+    "cedula": "1000000001",
+    "fullName": "Paciente Ficticio Uno",
+    "eps": "salud_total",
+    "affiliationStatus": "active",
+    "mobilePhone": "3000000001",
+    "email": "paciente1@example.invalid"
+  },
+  {
+    "cedula": "1000000002",
+    "fullName": "Paciente Ficticio Dos",
+    "eps": "sanitas",
+    "affiliationStatus": "active",
+    "mobilePhone": "3000000002",
+    "email": null
+  },
+  {
+    "cedula": "1000000003",
+    "fullName": "Paciente Ficticio Tres",
+    "eps": "salud_total",
+    "affiliationStatus": "inactive",
+    "mobilePhone": "3000000003",
+    "email": "paciente3@example.invalid"
+  }
+]

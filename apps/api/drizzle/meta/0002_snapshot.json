@@ -1,0 +1,677 @@
+{
+  "id": "f20d1818-f36b-4c1d-b681-3c7198363f31",
+  "prevId": "9cc5d76f-64b7-4754-9797-445bc166b01a",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "sim.affiliates": {
+      "name": "affiliates",
+      "schema": "sim",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "cedula": {
+          "name": "cedula",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "full_name": {
+          "name": "full_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "eps": {
+          "name": "eps",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "affiliation_status": {
+          "name": "affiliation_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "mobile_phone": {
+          "name": "mobile_phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "affiliates_cedula_unique": {
+          "name": "affiliates_cedula_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "cedula"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "affiliates_eps_valid": {
+          "name": "affiliates_eps_valid",
+          "value": "\"sim\".\"affiliates\".\"eps\" IN ('salud_total', 'sanitas')"
+        },
+        "affiliates_status_valid": {
+          "name": "affiliates_status_valid",
+          "value": "\"sim\".\"affiliates\".\"affiliation_status\" IN ('active', 'inactive')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "app.browser_devices": {
+      "name": "browser_devices",
+      "schema": "app",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "token_hash": {
+          "name": "token_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "csrf_hash": {
+          "name": "csrf_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "push_subscription": {
+          "name": "push_subscription",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "app.clock_now()"
+        },
+        "last_seen_at": {
+          "name": "last_seen_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "app.clock_now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "browser_devices_token_hash_unique": {
+          "name": "browser_devices_token_hash_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "token_hash"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "app.captured_messages": {
+      "name": "captured_messages",
+      "schema": "app",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "channel": {
+          "name": "channel",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "destination": {
+          "name": "destination",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "subject": {
+          "name": "subject",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "body": {
+          "name": "body",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "app.clock_now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "captured_messages_channel_valid": {
+          "name": "captured_messages_channel_valid",
+          "value": "\"app\".\"captured_messages\".\"channel\" IN ('sms', 'email')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "app.channel_bindings": {
+      "name": "channel_bindings",
+      "schema": "app",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "patient_ref_id": {
+          "name": "patient_ref_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "browser_device_id": {
+          "name": "browser_device_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "telegram_chat_id": {
+          "name": "telegram_chat_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "app.clock_now()"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "revoked_at": {
+          "name": "revoked_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "channel_bindings_one_live_per_browser": {
+          "name": "channel_bindings_one_live_per_browser",
+          "columns": [
+            {
+              "expression": "browser_device_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "patient_ref_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"app\".\"channel_bindings\".\"revoked_at\" IS NULL AND \"app\".\"channel_bindings\".\"browser_device_id\" IS NOT NULL",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "channel_bindings_one_live_per_chat": {
+          "name": "channel_bindings_one_live_per_chat",
+          "columns": [
+            {
+              "expression": "telegram_chat_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "patient_ref_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"app\".\"channel_bindings\".\"revoked_at\" IS NULL AND \"app\".\"channel_bindings\".\"telegram_chat_id\" IS NOT NULL",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "channel_bindings_patient_ref_id_patient_refs_id_fk": {
+          "name": "channel_bindings_patient_ref_id_patient_refs_id_fk",
+          "tableFrom": "channel_bindings",
+          "tableTo": "patient_refs",
+          "schemaTo": "app",
+          "columnsFrom": [
+            "patient_ref_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "channel_bindings_browser_device_id_browser_devices_id_fk": {
+          "name": "channel_bindings_browser_device_id_browser_devices_id_fk",
+          "tableFrom": "channel_bindings",
+          "tableTo": "browser_devices",
+          "schemaTo": "app",
+          "columnsFrom": [
+            "browser_device_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "channel_bindings_telegram_chat_id_telegram_chats_id_fk": {
+          "name": "channel_bindings_telegram_chat_id_telegram_chats_id_fk",
+          "tableFrom": "channel_bindings",
+          "tableTo": "telegram_chats",
+          "columnsFrom": [
+            "telegram_chat_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "channel_bindings_one_channel": {
+          "name": "channel_bindings_one_channel",
+          "value": "num_nonnulls(\"app\".\"channel_bindings\".\"browser_device_id\", \"app\".\"channel_bindings\".\"telegram_chat_id\") = 1"
+        },
+        "channel_bindings_three_months": {
+          "name": "channel_bindings_three_months",
+          "value": "\"app\".\"channel_bindings\".\"expires_at\" = \"app\".\"channel_bindings\".\"created_at\" + interval '3 months'"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "app.consent_records": {
+      "name": "consent_records",
+      "schema": "app",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "kind": {
+          "name": "kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cedula_fingerprint": {
+          "name": "cedula_fingerprint",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "declarant": {
+          "name": "declarant",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "channel": {
+          "name": "channel",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "notice_version": {
+          "name": "notice_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "accepted_at": {
+          "name": "accepted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "recorded_at": {
+          "name": "recorded_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "app.clock_now()"
+        }
+      },
+      "indexes": {
+        "consent_records_fingerprint_idx": {
+          "name": "consent_records_fingerprint_idx",
+          "columns": [
+            {
+              "expression": "cedula_fingerprint",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "consent_records_kind_valid": {
+          "name": "consent_records_kind_valid",
+          "value": "\"app\".\"consent_records\".\"kind\" IN ('data_processing', 'health_data', 'revocation')"
+        },
+        "consent_records_declarant_valid": {
+          "name": "consent_records_declarant_valid",
+          "value": "\"app\".\"consent_records\".\"declarant\" IN ('holder', 'third_party')"
+        },
+        "consent_records_channel_valid": {
+          "name": "consent_records_channel_valid",
+          "value": "\"app\".\"consent_records\".\"channel\" IN ('web', 'telegram')"
+        },
+        "consent_records_accepted_before_recorded": {
+          "name": "consent_records_accepted_before_recorded",
+          "value": "\"app\".\"consent_records\".\"accepted_at\" <= \"app\".\"consent_records\".\"recorded_at\""
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "app.otp_challenges": {
+      "name": "otp_challenges",
+      "schema": "app",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "cedula_fingerprint": {
+          "name": "cedula_fingerprint",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "purpose": {
+          "name": "purpose",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "code_hash": {
+          "name": "code_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "attempts_used": {
+          "name": "attempts_used",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "consumed_at": {
+          "name": "consumed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "superseded_at": {
+          "name": "superseded_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "app.clock_now()"
+        }
+      },
+      "indexes": {
+        "otp_challenges_one_live_per_fingerprint": {
+          "name": "otp_challenges_one_live_per_fingerprint",
+          "columns": [
+            {
+              "expression": "cedula_fingerprint",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"app\".\"otp_challenges\".\"consumed_at\" IS NULL AND \"app\".\"otp_challenges\".\"superseded_at\" IS NULL",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "otp_challenges_fingerprint_created_idx": {
+          "name": "otp_challenges_fingerprint_created_idx",
+          "columns": [
+            {
+              "expression": "cedula_fingerprint",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "otp_challenges_purpose_valid": {
+          "name": "otp_challenges_purpose_valid",
+          "value": "\"app\".\"otp_challenges\".\"purpose\" IN ('verify', 'revoke')"
+        },
+        "otp_challenges_attempts_max": {
+          "name": "otp_challenges_attempts_max",
+          "value": "\"app\".\"otp_challenges\".\"attempts_used\" >= 0 AND \"app\".\"otp_challenges\".\"attempts_used\" <= 3"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "app.patient_refs": {
+      "name": "patient_refs",
+      "schema": "app",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "cedula_fingerprint": {
+          "name": "cedula_fingerprint",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sim_affiliate_id": {
+          "name": "sim_affiliate_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "patient_refs_cedula_fingerprint_unique": {
+          "name": "patient_refs_cedula_fingerprint_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "cedula_fingerprint"
+          ]
+        },
+        "patient_refs_sim_affiliate_id_unique": {
+          "name": "patient_refs_sim_affiliate_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "sim_affiliate_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.telegram_chats": {
+      "name": "telegram_chats",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "chat_id": {
+          "name": "chat_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "conversation": {
+          "name": "conversation",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "last_update_id": {
+          "name": "last_update_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "app.clock_now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "telegram_chats_chat_id_unique": {
+          "name": "telegram_chats_chat_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "chat_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {
+    "app": "app",
+    "sim": "sim"
+  },
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

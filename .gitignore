@@ -62,3 +62,7 @@ Thumbs.db
 
 # --- Procesos locales de init.sh ---
 .run/
+
+# --- Datos simulados con contactos de prueba de la usuaria (sección 3.2) ---
+# affiliates.local.json lo lee `db:seed` en lugar de affiliates.json; nunca se versiona.
+data/simulated/*.local.json

@@ -15,6 +15,13 @@
       "when": 1793631728648,
       "tag": "0001_telegram_chats",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793634067948,
+      "tag": "0002_identity_otp",
+      "breakpoints": true
     }
   ]
 }
