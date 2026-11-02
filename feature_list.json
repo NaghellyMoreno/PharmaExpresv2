@@ -96,7 +96,7 @@
       "Pedir un código nuevo pasados 2 minutos, enviar el código anterior y verificar que se rechaza porque quedó anulado",
       "Con la misma cédula, pedir 5 códigos en una hora respetando los 2 minutos y verificar que el bot rechaza el sexto"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "F007",
