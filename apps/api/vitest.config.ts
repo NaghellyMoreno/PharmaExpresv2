@@ -14,6 +14,10 @@ export default defineConfig({
       DATABASE_URL: process.env.DATABASE_URL ?? 'postgres://pharma:pharma@localhost:5433/pharma',
       APP_ORIGIN: 'http://localhost:4173',
       CONSENT_COOKIE_KEY: randomBytes(32).toString('base64url'),
+      // Bot de pruebas: nunca se llama a Telegram (modo capture) y los secretos son aleatorios por corrida.
+      MESSAGING_MODE: 'capture',
+      TELEGRAM_BOT_TOKEN: `123456:${randomBytes(24).toString('base64url')}`,
+      TELEGRAM_WEBHOOK_SECRET: randomBytes(24).toString('base64url'),
     },
   },
   plugins: [swc.vite({ module: { type: 'es6' } })],

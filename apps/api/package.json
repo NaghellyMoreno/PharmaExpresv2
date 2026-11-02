@@ -19,6 +19,7 @@
     "class-transformer": "0.5.1",
     "class-validator": "0.15.1",
     "drizzle-orm": "0.45.4",
+    "grammy": "1.46.0",
     "helmet": "8.3.0",
     "pg": "8.23.1",
     "reflect-metadata": "0.2.2",

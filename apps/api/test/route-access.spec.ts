@@ -6,7 +6,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { ACCESS_KEY, AccessGuard, Public, type AccessMark } from '../src/common/access';
+import { ACCESS_KEY, AccessGuard, Public, TelegramWebhook, type AccessMark } from '../src/common/access';
 import { API_PREFIX } from '../src/app';
 import { createTestApp } from './support/app';
 
@@ -24,6 +24,9 @@ const APPROVED_PUBLIC = [
   'POST /staff/password-resets',
   'POST /staff/password-changes',
 ];
+
+// Webhook de Telegram: protegido por secreto, sin sesión ni Origin (ADR 0008 y 0016).
+const APPROVED_TELEGRAM_WEBHOOK = ['POST /telegram/webhook'];
 
 interface RouteInfo {
   route: string;
@@ -50,7 +53,9 @@ function problems(routes: RouteInfo[]): string[] {
   const out: string[] = [];
   for (const { route, mark } of routes) {
     if (!mark) out.push(`${route}: sin marca de acceso`);
-    else if (mark.kind === 'public') {
+    else if (mark.kind === 'telegram_webhook') {
+      if (!APPROVED_TELEGRAM_WEBHOOK.includes(route)) out.push(`${route}: webhook de Telegram fuera de la lista aprobada`);
+    } else if (mark.kind === 'public') {
       if (!APPROVED_PUBLIC.includes(route)) out.push(`${route}: pública fuera de la lista aprobada`);
       if (route.startsWith('POST') && !mark.checkOrigin) out.push(`${route}: pública que cambia datos sin control de Origin`);
     }
@@ -73,7 +78,7 @@ describe('marcas de acceso de las rutas (ADR 0016)', () => {
       [...m.controllers.values()].map((w) => w.metatype as Function),
     );
     const routes = listRoutes(controllers);
-    expect(routes.map((r) => r.route)).toEqual(expect.arrayContaining(['GET /privacy-notice', 'POST /consents/acceptance']));
+    expect(routes.map((r) => r.route)).toEqual(expect.arrayContaining(['GET /privacy-notice', 'POST /consents/acceptance', 'POST /telegram/webhook']));
     expect(problems(routes)).toEqual([]);
   });
 
@@ -83,8 +88,22 @@ describe('marcas de acceso de las rutas (ADR 0016)', () => {
       @Get() uno() {}
       @Public() @Get('extra') dos() {}
       @Public() @Post('cambia') tres() {}
+      @TelegramWebhook() @Post('otro-webhook') cuatro() {}
     }
-    expect(problems(listRoutes([SinMarca]))).toHaveLength(4);
+    expect(problems(listRoutes([SinMarca]))).toHaveLength(5);
+  });
+
+  // Criterio T.2: el webhook no exige Origin y POST /consents/acceptance sigue exigiéndolo.
+  it('el webhook no exige Origin y el POST de consentimiento sí', async () => {
+    const hook = await request(app.getHttpServer())
+      .post('/api/v1/telegram/webhook')
+      .set('X-Telegram-Bot-Api-Secret-Token', process.env.TELEGRAM_WEBHOOK_SECRET!)
+      .send({ update_id: 1 });
+    expect(hook.status).toBe(200);
+    const consent = await request(app.getHttpServer())
+      .post('/api/v1/consents/acceptance')
+      .send({ noticeVersion: 'x', declarant: 'holder' });
+    expect(consent.status).toBe(403);
   });
 
   it('una ruta sin marca responde 403 (denegar por defecto)', async () => {

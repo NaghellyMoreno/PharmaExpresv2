@@ -31,8 +31,9 @@ export default defineConfig({
       timeout: 60_000,
     },
     {
-      // Compilación de producción: sin el doble efecto de StrictMode del modo de desarrollo.
-      command: `pnpm --filter web build && pnpm --filter web exec vite preview --port ${WEB_PORT} --strictPort`,
+      // Compilación de producción (sin el doble efecto de StrictMode del modo de desarrollo). La compilación se
+      // hace antes, en el script `e2e`: dentro del webServer agotaba el plazo en frío (hallazgo H1 de QA, F001).
+      command: `pnpm --filter web exec vite preview --port ${WEB_PORT} --strictPort`,
       url: WEB_ORIGIN,
       env: { API_PROXY_TARGET: `http://localhost:${API_PORT}` },
       reuseExistingServer: false,
