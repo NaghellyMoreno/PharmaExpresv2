@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { CodeRequestRejected, requestVerificationCode, verifyIdentity, type Binding, type NextStep } from './api';
+import { CodeRequestRejected, fetchLinkedBindings, requestVerificationCode, verifyIdentity, type Binding, type NextStep } from './api';
 import { LinkedPatient } from './LinkedPatient';
 import { EXIT_STEPS, TEXTS } from './texts';
 
 type Phase =
   | { name: 'cedula'; focus?: boolean }
   | { name: 'code'; challengeId: string; message: string }
-  | { name: 'verified'; challengeId: string; message: string; binding?: Binding };
+  | { name: 'verified'; challengeId: string; message: string; binding?: Binding; bindings?: Binding[] };
 
 const CEDULA_FORMAT = /^[0-9]{5,12}$/;
 const CODE_FORMAT = /^[0-9]{6}$/;
@@ -15,14 +15,30 @@ const CODE_FORMAT = /^[0-9]{6}$/;
  * P-02: cédula, código de un solo uso y verificación. El mensaje aprobado sale de la respuesta 202 de la API
  * (idéntico exista o no la cédula) y solo se muestra después de recibirla.
  */
-export function IdentityStep() {
+export function IdentityStep(props: { onLinkAnother?: () => void; onStartManagement?: () => void }) {
   const [phase, setPhase] = useState<Phase>({ name: 'cedula' });
+  const verifiedBinding = phase.name === 'verified' ? phase.binding : undefined;
+  // F011: la respuesta de la verificación trae solo la vinculación nueva; P-03 lista todas las vigentes del navegador.
+  useEffect(() => {
+    if (!verifiedBinding) return;
+    let current = true;
+    fetchLinkedBindings()
+      .then((all) => (all.length > 0 ? all : [verifiedBinding]))
+      .catch(() => [verifiedBinding])
+      .then((bindings) => current && setPhase((p) => (p.name === 'verified' ? { ...p, bindings } : p)));
+    return () => {
+      current = false;
+    };
+  }, [verifiedBinding]);
+
   if (phase.name === 'cedula') return <CedulaForm focusOnMount={phase.focus} onAccepted={(r) => setPhase({ name: 'code', ...r })} />;
   if (phase.name === 'verified') {
     return (
       <main>
         <p role="status">{TEXTS.verified}</p>
-        {phase.binding && <LinkedPatient bindings={[phase.binding]} />}
+        {phase.bindings && (
+          <LinkedPatient bindings={phase.bindings} onLinkAnother={props.onLinkAnother} onStartManagement={props.onStartManagement} />
+        )}
         <button type="button" onClick={() => setPhase({ ...phase, name: 'code' })}>
           {TEXTS.verifyAnother}
         </button>

@@ -35,6 +35,12 @@ export const TEXTS = {
   linkedTitle: 'Paciente vinculado',
   linkedUntil: (date: string) => `Vinculación vigente hasta el ${date}.`,
   sessionError: 'No pudimos consultar su sesión. Intente de nuevo.',
+  // F011. Cadenas con asterisco del anexo: Inferido hasta que la usuaria las confirme.
+  linkAnother: 'Vincular otro paciente',
+  startManagement: 'Iniciar una gestión',
+  selectTitle: '¿A nombre de quién va a hacer la gestión?',
+  managingTitle: (name: string) => `Gestionando a nombre de ${name}`,
+  changePatient: 'Cambiar de paciente',
   tooSoon: 'Ya enviamos un código hace poco. Espere 2 minutos para pedir uno nuevo.',
   hourlyLimit: 'Alcanzó el límite de códigos por hora. Intente más tarde o acuda a la atención presencial.',
 } as const;

@@ -2,12 +2,15 @@ import { useCallback, useEffect, useState } from 'react';
 import { acceptPrivacyNotice, fetchLinkedBindings, fetchPrivacyNotice, type Binding, type Declarant, type PrivacyNotice } from './api';
 import { IdentityStep } from './IdentityStep';
 import { LinkedPatient } from './LinkedPatient';
+import { ManagingFor, PatientSelection } from './Management';
 import { REVOKE_PATH, TEXTS } from './texts';
 
 type View =
   | { name: 'loading' }
-  | { name: 'error' }
+  | { name: 'error'; message: string; retry: () => void }
   | { name: 'linked'; bindings: Binding[] }
+  | { name: 'selecting'; bindings: Binding[] }
+  | { name: 'managing'; binding: Binding }
   | { name: 'notice'; notice: PrivacyNotice }
   | { name: 'rejected'; notice: PrivacyNotice }
   | { name: 'accepted' };
@@ -27,19 +30,43 @@ export function PatientHome() {
           ? setView({ name: 'linked', bindings })
           : fetchPrivacyNotice().then((notice) => setView({ name: 'notice', notice })),
       )
-      .catch(() => setView({ name: 'error' }));
+      .catch(() => setView({ name: 'error', message: TEXTS.loadError, retry: load }));
   }, []);
   useEffect(load, [load]);
 
-  if (view.name === 'accepted') return <IdentityStep />;
+  /** "Vincular otro paciente": la cookie de consentimiento es de sesión, así que se vuelve al aviso (P-1, provisional). */
+  const linkAnother = useCallback(() => {
+    setView({ name: 'loading' });
+    fetchPrivacyNotice()
+      .then((notice) => setView({ name: 'notice', notice }))
+      .catch(() => setView({ name: 'error', message: TEXTS.loadError, retry: linkAnother }));
+  }, []);
+
+  /**
+   * "Iniciar una gestión" y "Cambiar de paciente": se consulta GET /me cada vez, para no ofrecer una vinculación que venció
+   * con la página abierta. Con 2 o más hay selección; con 1 no hay nada que escoger (sección 3.3); con 0, el aviso.
+   * La selección vive solo en este estado: no se guarda y no concede acceso, lo decide la API.
+   */
+  const startManagement = useCallback((changing = false) => {
+    setView({ name: 'loading' });
+    fetchLinkedBindings()
+      .then((bindings) => {
+        if (bindings.length >= 2) return setView({ name: 'selecting', bindings });
+        if (bindings.length === 1) return setView(changing ? { name: 'linked', bindings } : { name: 'managing', binding: bindings[0] });
+        return fetchPrivacyNotice().then((notice) => setView({ name: 'notice', notice }));
+      })
+      .catch(() => setView({ name: 'error', message: TEXTS.sessionError, retry: () => startManagement(changing) }));
+  }, []);
+
+  if (view.name === 'accepted') return <IdentityStep onLinkAnother={linkAnother} onStartManagement={() => startManagement()} />;
 
   return (
     <main>
       {view.name === 'loading' && <p role="status">Cargando…</p>}
       {view.name === 'error' && (
         <section>
-          <p role="alert">{TEXTS.loadError}</p>
-          <button type="button" onClick={load}>
+          <p role="alert">{view.message}</p>
+          <button type="button" onClick={view.retry}>
             {TEXTS.retry}
           </button>
           <p>
@@ -47,7 +74,11 @@ export function PatientHome() {
           </p>
         </section>
       )}
-      {view.name === 'linked' && <LinkedPatient bindings={view.bindings} />}
+      {view.name === 'linked' && <LinkedPatient bindings={view.bindings} onLinkAnother={linkAnother} onStartManagement={() => startManagement()} />}
+      {view.name === 'selecting' && (
+        <PatientSelection bindings={view.bindings} onChoose={(binding) => setView({ name: 'managing', binding })} />
+      )}
+      {view.name === 'managing' && <ManagingFor name={view.binding.displayName} onChange={() => startManagement(true)} />}
       {view.name === 'rejected' && (
         <section>
           <p role="status">{TEXTS.rejected}</p>
