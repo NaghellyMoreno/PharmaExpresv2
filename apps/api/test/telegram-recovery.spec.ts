@@ -519,13 +519,15 @@ describe('paso 3: los tres caminos, con orientación que no cambia datos', () =>
   it('3.9 los textos que piden cambiar el celular o el correo no modifican nada y no abren un camino de cambio', async () => {
     const typed = ['cambiar mi celular', 'mi correo es otro@example.invalid', '/celular', '/correo'];
     const allowed = new Set([CODE_INCOMPLETE, CEDULA_INVALID]);
+    // F010: en verified un texto libre recibe B-03 (el paciente y su vencimiento); sigue sin tocar nada ni abrir un camino de cambio.
+    const BOUND = /^Paciente vinculado: Paciente Ficticio Uno\. Vinculación vigente hasta el \d{1,2} de [a-z]+ de \d{4}\.$/;
     const run = async () => {
       const affBefore = await affiliatesDump();
       const before = await rowMap(pool);
       const messages = (await capturedMessages(pool)).length;
       clearCalls();
       for (const value of typed) await say(A, value);
-      expect(sentTexts().every((t) => allowed.has(t!))).toBe(true);
+      expect(sentTexts().every((t) => allowed.has(t!) || BOUND.test(t!))).toBe(true);
       expect(await affiliatesDump()).toEqual(affBefore);
       expect(await rowMap(pool)).toEqual(before);
       expect((await capturedMessages(pool)).length).toBe(messages);
