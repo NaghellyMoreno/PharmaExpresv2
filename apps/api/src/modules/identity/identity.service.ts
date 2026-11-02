@@ -25,7 +25,17 @@ export interface VerificationOutcome {
   device: { token: string; expires: Date };
 }
 
-type Attempt = { ok: true; value: VerificationOutcome } | { ok: false; error: HttpException };
+type Attempt<T> = { ok: true; value: T } | { ok: false; error: HttpException };
+
+/** Lo que cada canal aporta a la verificación: la aceptación guardada y cómo vincular al paciente. */
+export interface ChannelVerification<T> {
+  consent: { declarant: ConsentPayload['declarant']; noticeVersion: string; acceptedAt: string; channel: 'web' | 'telegram' };
+  /** Corre dentro de la transacción de la verificación: si lanza, se revierte todo, incluido el consumo del reto. */
+  link(c: PoolClient, verified: { patientRefId: string; fingerprint: string; fullName: string }): Promise<T>;
+}
+
+/** Dueño de una vinculación: un navegador (web) o un chat de Telegram (ADR 0007). */
+export type BindingOwner = { column: 'browser_device_id' | 'telegram_chat_id'; id: string };
 
 const wrongCode = (attemptsRemaining: number) =>
   new HttpException({ code: 'code_incorrect', title: 'El código no es correcto', attemptsRemaining }, 422);
@@ -70,24 +80,48 @@ export class IdentityService {
     });
   }
 
-  /**
-   * Verifica el código. Si es correcto, en una sola transacción: consume el reto, crea la referencia del paciente,
-   * registra la aceptación (con la fecha de la cookie, R-29), el dispositivo y la vinculación. Si algo falla, no queda nada.
-   * Un código incorrecto sí cuenta el intento aunque la respuesta sea un error.
-   */
+  /** Verificación desde la web: el canal aporta la cookie de consentimiento y el dispositivo del navegador. */
   async verify(challengeId: string, code: string, consent: ConsentPayload, deviceToken: string | null): Promise<VerificationOutcome> {
-    const attempt = await withTransaction<Attempt>(this.pool, (c) => this.verifyInTransaction(c, challengeId, code, consent, deviceToken));
+    return this.verifyChallenge(challengeId, code, {
+      consent: { declarant: consent.declarant, noticeVersion: consent.noticeVersion, acceptedAt: consent.acceptedAt, channel: 'web' },
+      link: async (c, { patientRefId, fingerprint, fullName }) => {
+        const { token, deviceId, csrfToken } = await this.resolveDevice(c, deviceToken);
+        const bindingExpiresAt = await this.resolveBinding(c, { column: 'browser_device_id', id: deviceId }, patientRefId);
+        const latest = await c.query<{ expires_at: Date }>(
+          `SELECT max(expires_at) AS expires_at FROM app.channel_bindings
+           WHERE browser_device_id = $1 AND revoked_at IS NULL AND expires_at > app.clock_now()`,
+          [deviceId],
+        );
+        const health = await c.query(
+          "SELECT 1 FROM app.consent_records WHERE cedula_fingerprint = $1 AND kind = 'health_data' LIMIT 1",
+          [fingerprint],
+        );
+        return {
+          binding: {
+            patientRefId,
+            displayName: fullName,
+            expiresAt: bindingExpiresAt.toISOString(),
+            hasHealthDataAuthorization: (health.rowCount ?? 0) > 0,
+          },
+          csrfToken,
+          device: { token, expires: latest.rows[0].expires_at },
+        };
+      },
+    });
+  }
+
+  /**
+   * Verifica el código, igual para cualquier canal. Si es correcto, en una sola transacción: consume el reto, crea la
+   * referencia del paciente, registra la aceptación (con la fecha guardada al aceptar, R-29) y deja que el canal vincule.
+   * Si algo falla, no queda nada. Un código incorrecto sí cuenta el intento aunque la respuesta sea un error.
+   */
+  async verifyChallenge<T>(challengeId: string, code: string, channel: ChannelVerification<T>): Promise<T> {
+    const attempt = await withTransaction<Attempt<T>>(this.pool, (c) => this.verifyInTransaction(c, challengeId, code, channel));
     if (!attempt.ok) throw attempt.error;
     return attempt.value;
   }
 
-  private async verifyInTransaction(
-    c: PoolClient,
-    challengeId: string,
-    code: string,
-    consent: ConsentPayload,
-    deviceToken: string | null,
-  ): Promise<Attempt> {
+  private async verifyInTransaction<T>(c: PoolClient, challengeId: string, code: string, channel: ChannelVerification<T>): Promise<Attempt<T>> {
     // El bloqueo de la fila serializa las peticiones simultáneas con el mismo reto: solo una lo consume (ADR 0006, decisión 5).
     const { rows } = await c.query<{
       cedula_fingerprint: string;
@@ -132,34 +166,11 @@ export class IdentityService {
     const patientRefId = patient.rows[0].id;
     await c.query(
       `INSERT INTO app.consent_records (kind, cedula_fingerprint, declarant, channel, notice_version, accepted_at, recorded_at)
-       VALUES ('data_processing', $1, $2, 'web', $3, $4::timestamptz, app.clock_now())`,
-      [challenge.cedula_fingerprint, consent.declarant, consent.noticeVersion, consent.acceptedAt],
+       VALUES ('data_processing', $1, $2, $3, $4, $5::timestamptz, app.clock_now())`,
+      [challenge.cedula_fingerprint, channel.consent.declarant, channel.consent.channel, channel.consent.noticeVersion, channel.consent.acceptedAt],
     );
-
-    const { token, deviceId, csrfToken } = await this.resolveDevice(c, deviceToken);
-    const bindingExpiresAt = await this.resolveBinding(c, deviceId, patientRefId);
-    const latest = await c.query<{ expires_at: Date }>(
-      `SELECT max(expires_at) AS expires_at FROM app.channel_bindings
-       WHERE browser_device_id = $1 AND revoked_at IS NULL AND expires_at > app.clock_now()`,
-      [deviceId],
-    );
-    const health = await c.query(
-      "SELECT 1 FROM app.consent_records WHERE cedula_fingerprint = $1 AND kind = 'health_data' LIMIT 1",
-      [challenge.cedula_fingerprint],
-    );
-    return {
-      ok: true,
-      value: {
-        binding: {
-          patientRefId,
-          displayName: affiliate!.full_name,
-          expiresAt: bindingExpiresAt.toISOString(),
-          hasHealthDataAuthorization: (health.rowCount ?? 0) > 0,
-        },
-        csrfToken,
-        device: { token, expires: latest.rows[0].expires_at },
-      },
-    };
+    const value = await channel.link(c, { patientRefId, fingerprint: challenge.cedula_fingerprint, fullName: affiliate!.full_name });
+    return { ok: true, value };
   }
 
   /**
@@ -192,22 +203,23 @@ export class IdentityService {
     return { deviceId: created.rows[0].id, token, csrfToken };
   }
 
-  /** Reutiliza la vinculación vigente del mismo navegador y paciente; si venció, la revoca y crea otra (3 meses). */
-  private async resolveBinding(c: PoolClient, deviceId: string, patientRefId: string): Promise<Date> {
+  /** Reutiliza la vinculación vigente del mismo dueño y paciente; si venció, la revoca y crea otra (3 meses). */
+  async resolveBinding(c: PoolClient, owner: BindingOwner, patientRefId: string): Promise<Date> {
+    const column = owner.column; // unión cerrada de dos nombres: no viene del usuario
     const existing = await c.query<{ id: string; expires_at: Date; live: boolean }>(
       `SELECT id, expires_at, (expires_at > app.clock_now()) AS live FROM app.channel_bindings
-       WHERE browser_device_id = $1 AND patient_ref_id = $2 AND revoked_at IS NULL FOR UPDATE`,
-      [deviceId, patientRefId],
+       WHERE ${column} = $1 AND patient_ref_id = $2 AND revoked_at IS NULL FOR UPDATE`,
+      [owner.id, patientRefId],
     );
     const current = existing.rows[0];
     if (current?.live) return current.expires_at;
     if (current) await c.query('UPDATE app.channel_bindings SET revoked_at = app.clock_now() WHERE id = $1', [current.id]);
     const created = await c.query<{ expires_at: Date }>(
       `WITH t AS (SELECT app.clock_now() AS now)
-       INSERT INTO app.channel_bindings (patient_ref_id, browser_device_id, created_at, expires_at)
+       INSERT INTO app.channel_bindings (patient_ref_id, ${column}, created_at, expires_at)
        SELECT $1, $2, t.now, t.now + interval '3 months' FROM t
        RETURNING expires_at`,
-      [patientRefId, deviceId],
+      [patientRefId, owner.id],
     );
     return created.rows[0].expires_at;
   }
