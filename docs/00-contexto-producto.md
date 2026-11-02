@@ -1,6 +1,6 @@
 # Pharma Express - Contexto para agentes de IA
 
-Versión: 6
+Versión: 7
 Estado: Aprobado
 Propósito: dar a cualquier agente de IA que trabaje en Pharma Express las reglas de trabajo, el dominio y el contexto del producto, sin importar la tarea que realice.
 
@@ -89,7 +89,7 @@ Esta sección describe cómo funciona Pharma Express según lo aprobado por la r
 - El titular puede revocar el consentimiento y pedir que se eliminen sus datos. Para revocar se verifica la identidad con un código nuevo pedido en ese momento, aunque el canal esté vinculado. Como el sistema no distingue al titular de un tercero (sección 3.3), revoca quien supere esa verificación.
 - La opción "Revocar mi autorización" está en la pantalla de inicio de la web y del bot, también sin canal vinculado o con la vinculación vencida, porque el Decreto 1377 de 2013 (artículo 9) exige mecanismos gratuitos y de fácil acceso. Para revocar no se pide aceptar el aviso de privacidad; se informa que la cédula se usa solo para verificar la identidad y atender la solicitud. La revocación no crea ninguna vinculación.
 - La revocación elimina de inmediato los documentos cargados, los datos del OCR, los resultados de prevalidación, las solicitudes, las citas, las vinculaciones de chats y navegadores y los recordatorios programados. Las citas activas se cancelan y el cupo y los medicamentos quedan disponibles para otras personas.
-- Se conserva la prueba del consentimiento y de su revocación (fecha, canal, si fue el titular o un tercero y versión del aviso), ligada a una huella cifrada de la cédula y no a la cédula. El Decreto 1377 de 2013 (artículo 8) exige conservar la prueba de la autorización. De cada cita cancelada o entregada queda solo el punto, la ventana, la fecha y el motivo, sin datos del paciente.
+- Se conserva la prueba del consentimiento y de su revocación (fecha, canal, si fue el titular o un tercero y versión del aviso), ligada a una huella de la cédula con clave secreta (HMAC) y no a la cédula. Para dejar esa prueba, el flujo de revocación pide la declaración "Soy el titular" o "Actúo con su autorización". El Decreto 1377 de 2013 (artículo 8) exige conservar la prueba de la autorización. De cada cita cancelada o entregada queda solo el punto, la ventana, la fecha y el motivo, sin datos del paciente.
 - Al revocar se envía una confirmación por SMS y correo, para que el titular se entere si lo hizo un tercero. La confirmación indica cuántas citas activas se cancelaron, sin medicamentos ni puntos (por ejemplo: "Revocaste tu autorización. Eliminamos tus datos y cancelamos tus 2 citas activas."); no se envía una notificación de cancelación por cada cita. Los datos de la EPS simulada no se modifican.
 
 ## 3.3. Vinculación de canales y apoyo de terceros
@@ -109,6 +109,7 @@ Esta sección describe cómo funciona Pharma Express según lo aprobado por la r
 - Si de un documento no se obtienen los datos (ilegible, incompleto, sin diagnóstico o sin coincidencia con la EPS simulada), se pide cargarlo de nuevo. Cada documento admite 3 cargas en total: la inicial y 2 recargas. Si el problema persiste en la tercera carga, la fórmula queda no apta y se orienta a la atención presencial.
 - El tipo de tratamiento sale del diagnóstico. Un catálogo configurable define qué diagnósticos son crónicos; cualquier otro se trata como agudo.
 - El diagnóstico de cada fórmula es un dato de la EPS simulada, y la historia clínica debe contenerlo; si no lo contiene, aplica la regla de recarga. El sistema nunca escoge por su cuenta entre varios diagnósticos de la historia clínica. Base: el Decreto 2200 de 2005 (artículos 16 y 17) exige que la fórmula permita relacionar los medicamentos con el diagnóstico y que este conste en la historia clínica, pero no que la fórmula lo traiga.
+- Hay coincidencia con la EPS simulada cuando la fórmula muestra su número y la cédula del paciente, y la historia clínica muestra la cédula y el código CIE-10 del diagnóstico de esa fórmula; si el código no aparece, basta la descripción del diagnóstico, comparada sin tildes ni mayúsculas.
 - Si la historia clínica falla en la tercera carga por ser ilegible o estar incompleta, quedan no aptas todas las fórmulas de la solicitud. Si se lee pero le falta el diagnóstico de una fórmula, solo esa fórmula queda no apta.
 - La prevalidación sigue este orden:
   1. Afiliación activa. Se verifica una vez por solicitud. Si está inactiva, se detiene toda la solicitud y se orienta hacia la EPS.
@@ -137,6 +138,9 @@ Esta sección describe cómo funciona Pharma Express según lo aprobado por la r
 - No hay reprogramación. El usuario puede cancelar en cualquier momento. Para obtener otra cita debe iniciar una nueva solicitud.
 - Si el paciente ya recibió parte de una fórmula y no recoge el resto (porque cancela o no llega), lo no recogido se pierde y la fórmula se cierra. Si no recibió nada, todo se libera.
 - Si un medicamento no tiene existencias en ningún punto, o no hay ventanas con cupo en los días permitidos, no se crea un pendiente. Se informa que debe esperar 48 horas para volver a validar y se envía un único recordatorio a las 48 horas. El sistema no vigila el inventario.
+- Ese recordatorio sale hasta 1 hora después de las 48 horas, nunca antes; si cae entre las 21:00 y las 7:00, sale a las 7:00. Desde él se vuelve a validar en la misma solicitud, sin cargar otra vez los documentos.
+- Si al volver a validar tampoco hay disponibilidad, empieza una espera nueva con las mismas reglas: su propio recordatorio a las 48 horas y cancelación si la fórmula no se agenda en las 24 horas siguientes a ese recordatorio. Las fórmulas que quedan esperando en una misma validación comparten un solo recordatorio y un solo plazo.
+- El usuario puede cancelar una solicitud en cualquier momento. Además, se cancelan por inactividad: una solicitud con 24 horas sin actividad en carga o prevalidación, y una fórmula apta sin cita 24 horas después de prevalidarse (o 24 horas después del recordatorio de 48 horas, si estaba esperando).
 
 ## 3.6. Notificaciones y recordatorios
 
@@ -145,9 +149,10 @@ Esta sección describe cómo funciona Pharma Express según lo aprobado por la r
 - Hay dos recordatorios por cita:
   - Entre las 19:00 y las 21:00 del día anterior. No se envía en citas del mismo día ni si la cita se agendó después de las 19:00 del día anterior: en ese caso la confirmación cumple esa función.
   - Dos horas antes de la cita. Sale como máximo 10 minutos después de la hora programada. No se envía si la cita se agendó con menos de 2 horas de anticipación.
+- Si el recordatorio de dos horas antes sale con más de 10 minutos de retraso, se envía y se reverifica si la cita aún no empieza, y se omite si ya empezó; los dos casos se registran como incumplimiento.
 - Los recordatorios solo informan y ofrecen cancelar. No piden confirmación.
 - Al enviar el recordatorio de dos horas antes, el sistema vuelve a verificar afiliación, vigencia y autorizaciones. Si algo cambió en una fórmula, esa fórmula queda no apta, se liberan sus medicamentos en todos los puntos y se registra qué dato cambió y cuándo. Una cita que queda sin medicamentos se cancela y libera su cupo; una cita que conserva medicamentos de otras fórmulas aptas se mantiene, con la misma ventana y el mismo código. Si lo que cambió es la afiliación, afecta a todas las fórmulas de la solicitud. Se notifica el motivo, si la cita se mantiene y el siguiente paso, sin nombrar medicamentos; el detalle se consulta en la web o en Telegram. Si ese recordatorio no se envía por la poca anticipación, tampoco se reverifica: la prevalidación es reciente.
-- No existe cita de continuidad. Después de entregar una fórmula crónica, el sistema avisa 2 días antes de la siguiente fecha habilitada para que el usuario inicie una nueva prevalidación.
+- No existe cita de continuidad. Después de entregar una fórmula crónica, el sistema avisa 2 días antes de la siguiente fecha habilitada, a las 19:00, para que el usuario inicie una nueva prevalidación.
 - El sistema no avisa cuando llega un medicamento ni cuando la EPS aprueba una autorización.
 
 ## 3.7. Atención en el punto
@@ -170,6 +175,7 @@ Esta sección describe cómo funciona Pharma Express según lo aprobado por la r
 ## 3.9. Restricciones del proyecto
 
 - El proyecto no tiene acceso a los sistemas de Disfarma y se desarrolla desde afuera.
+- Es un prototipo universitario (Universidad de Caldas) con presupuesto de US$0: solo se usan servicios gratuitos o cuentas de estudiante sin tarjeta.
 
 ## 3.10. Fuera de alcance
 

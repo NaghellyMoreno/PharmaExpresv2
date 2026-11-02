@@ -1,7 +1,7 @@
 # 0001. Monorepo TypeScript con pnpm y tipos compartidos desde OpenAPI
 
-- **Estado:** Propuesta
-- **Fecha:** 2026-10-31
+- **Estado:** Aceptada (2026-11-01, la usuaria aprobó las propuestas de architect)
+- **Fecha:** 2026-10-31 (actualizada el 2026-11-01)
 - **Fuente:** `CLAUDE.md` (stack y mapa del repositorio), guía de agentes (architect, punto 13), sección 3.14
 
 ## Contexto

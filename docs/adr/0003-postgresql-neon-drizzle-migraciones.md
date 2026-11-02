@@ -1,7 +1,7 @@
 # 0003. PostgreSQL en Neon, acceso con Drizzle y migraciones con drizzle-kit
 
-- **Estado:** Propuesta
-- **Fecha:** 2026-10-31
+- **Estado:** Aceptada (2026-11-01, la usuaria aprobó las propuestas de architect)
+- **Fecha:** 2026-10-31 (actualizada el 2026-11-01)
 - **Fuente:** `CLAUDE.md` (PostgreSQL fijo; migraciones las define architect), secciones 3.5 y 3.13 (consultas parametrizadas)
 
 ## Contexto
@@ -13,7 +13,9 @@ La base de datos debe garantizar invariantes con restricciones, disparadores y b
 3. **ORM y consultas:** Drizzle ORM 0.45 (consultas parametrizadas por construcción; `.for('update')` para bloqueos). SQL directo solo con plantillas parametrizadas de Drizzle (`sql\`\``), nunca con concatenación.
 4. **Migraciones:** drizzle-kit 0.31; migraciones SQL versionadas en `apps/api/drizzle/`. Las restricciones que Drizzle no modela (disparadores de restricción diferidos, `CHECK` complejos, disparadores de solo inserción) van en migraciones personalizadas (`drizzle-kit generate --custom`).
 5. **Esquemas:** `sim` y `app` (ver `docs/03-arquitectura.md`). Usuario de base de datos de la aplicación sin permisos de escritura sobre `sim` en tiempo de ejecución; el cargador de semilla usa otro usuario (Inferido).
-6. **Aislamiento:** `READ COMMITTED` con bloqueos explícitos y actualizaciones condicionales; reintento único ante interbloqueo o fallo de serialización.
+6. **Aislamiento:** `READ COMMITTED` con bloqueos explícitos en el orden común del ADR 0005 (decisión 7) y actualizaciones condicionales; reintento único ante interbloqueo o fallo de serialización.
+7. **Hora:** toda hora de negocio sale de `app.clock_now()`, también en los `DEFAULT` de las columnas (ADR 0021).
+8. **Región:** Neon en AWS `us-east-1`, la más cercana a la función `iad1` (ADR 0002). Decisión técnica.
 
 ## Alternativas consideradas
 | Alternativa | A favor | En contra |

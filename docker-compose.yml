@@ -1,0 +1,19 @@
+# PostgreSQL local (ADR 0002, decisión 9). Credenciales solo para desarrollo local.
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: pharma
+      POSTGRES_PASSWORD: pharma
+      POSTGRES_DB: pharma
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pharma -d pharma"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+volumes:
+  pgdata:

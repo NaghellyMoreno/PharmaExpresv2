@@ -1,7 +1,7 @@
 # 0017. Herramientas de pruebas de backend, frontend, extremo a extremo, accesibilidad y rendimiento
 
-- **Estado:** Propuesta
-- **Fecha:** 2026-10-31
+- **Estado:** Aceptada (2026-11-01). El mecanismo de prueba de tiempo está en el ADR 0021.
+- **Fecha:** 2026-10-31 (actualizada el 2026-11-01)
 - **Fuente:** `CLAUDE.md` (pruebas las define architect); guía de agentes (qa-evaluator); RNF-002, RNF-021, RNF-022, RNF-029 a RNF-031
 
 ## Decisión
@@ -13,7 +13,10 @@
 | Extremo a extremo | Playwright 1.64 | Recorridos web y paneles contra el entorno local o de vista previa; Telegram con actualizaciones simuladas al webhook firmado |
 | Accesibilidad | `@axe-core/playwright` 4.14 | Criterios automáticos de WCAG 2.1 A y AA en cada pantalla; revisión manual de teclado (RNF-021) |
 | Rendimiento web | Lighthouse CI (`@lhci/cli` 0.15) con 4G lenta simulada | LCP, CLS y TBT; peso del JavaScript inicial (ver ADR 0020) |
-| Mensajes | Modo `capture` (ADR 0009) | Revisar que ninguna notificación tenga medicamentos ni diagnósticos |
+| Mensajes | Modo `capture` (ADR 0009) | Revisar que ninguna notificación tenga medicamentos ni diagnósticos y que cada SMS cumpla RNF-034 |
+| Tiempo | `app.clock_now()` y el comando `test:clock` (ADR 0021) | Plazos de minutos a meses y retrasos de recordatorios, en local y en vista previa |
+| Datos de prueba | Comandos `sim:stock`, `sim:apply` y `db:seed-staff` (ADR 0013) | Existencias, cambios en la EPS simulada y dispensadores de prueba sin el panel de administración |
+| OCR y contraseñas | Adaptadores `capture` de OCR (ADR 0012) y de Pwned Passwords (ADR 0014) | Pruebas sin Azure ni servicios externos |
 
 ## Alternativas consideradas
 | Alternativa | A favor | En contra |

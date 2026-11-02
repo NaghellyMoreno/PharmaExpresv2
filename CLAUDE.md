@@ -2,7 +2,7 @@
 
 Prototipo funcional de pre-dispensación farmacéutica, por aplicación web y bot de Telegram, para los puntos de Disfarma en Manizales. Tiene tres experiencias: la del paciente (web y Telegram), el panel del dispensador y el panel de administración. Sistemas externos simulados (EPS, inventario, puntos, validación oficial); Telegram, SMS y correo son reales. Se publica en Vercel.
 
-**Fuente de verdad del producto:** `docs/00-contexto-producto.md` (versión 6, aprobada). Ningún requisito, diseño ni código puede contradecirlo. Léelo por secciones, según la tarea.
+**Fuente de verdad del producto:** `docs/00-contexto-producto.md` (versión 7, aprobada). Ningún requisito, diseño ni código puede contradecirlo. Léelo por secciones, según la tarea.
 
 **Sistema de agentes:** los agentes y skills son genéricos y están instalados en `~/.claude`. Las reglas propias de este proyecto para cada agente están en `docs/guia-agentes.md`.
 
@@ -10,11 +10,12 @@ Prototipo funcional de pre-dispensación farmacéutica, por aplicación web y bo
 - Redacta en español de Colombia: documentos, interfaz, mensajes al usuario y commits.
 - La IA propone; la responsable del proyecto (la usuaria) decide y valida.
 - No inventes reglas, cifras, normas, integraciones ni comportamientos. Si falta información, pregunta. Si eres un subagente y no puedes preguntar, detente en ese punto y repórtalo como pendiente al orquestador.
-- Distingue siempre **Confirmado** (está en el contexto o lo respondió la usuaria), **Inferido** (conclusión propia, requiere confirmación) y **Pendiente** (no decidido). Una inferencia nunca se vuelve regla sin aprobación.
+- Distingue siempre **Confirmado** (está en el contexto o lo respondió la usuaria), **Inferido** (conclusión propia, requiere confirmación) y **Pendiente** (no decidido). Una inferencia de producto nunca se vuelve regla sin aprobación. Los detalles técnicos los decide el agente y quedan en el ADR; cuándo preguntar está en `docs/guia-agentes.md` (Todos los agentes).
 - Si una tarea contradice el contexto del producto, señala la contradicción y detente.
 - Para citar el contexto escribe "sección 3.4" o "secciones 3.1 y 3.6". No uses el símbolo de párrafo.
 
 ## Stack y despliegue (fijos)
+- Presupuesto: US$0. Es un prototipo universitario (Universidad de Caldas); solo servicios gratuitos o cuentas de estudiante sin tarjeta.
 - Lenguaje: TypeScript en todo el proyecto.
 - Frontend: React + Vite.
 - Backend: NestJS.

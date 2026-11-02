@@ -9,7 +9,7 @@
       "Abrir la web en un navegador sin vinculación y verificar que lo primero que se muestra es el aviso de privacidad con la declaración 'soy el titular o actúo con su autorización', sin ningún campo de cédula, y que la pantalla de inicio también ofrece la opción 'Revocar mi autorización' (detalle en F092)",
       "Rechazar el aviso y verificar que se informa que puede acudir a la atención presencial",
       "Verificar en la base de datos que no quedó ningún registro de esa visita",
-      "Volver a abrir la web, aceptar como tercero y verificar que queda registrado: aceptó un tercero, la fecha, el canal web y la versión del aviso",
+      "Volver a abrir la web y aceptar como tercero (el registro de la aceptación en la base de datos se verifica en F003, al completar la verificación de identidad)",
       "Verificar que solo después de aceptar se pide la cédula"
     ],
     "passes": false
@@ -24,7 +24,7 @@
       "Desde un chat de Telegram que nunca ha usado el bot, verificar que el bot no ha enviado ningún mensaje",
       "Iniciar el bot y verificar que lo primero que responde es el aviso de privacidad con la declaración 'soy el titular o actúo con su autorización', sin pedir la cédula, y que también ofrece la opción 'Revocar mi autorización' (detalle en F093)",
       "Rechazar el aviso y verificar que se informa que puede acudir a la atención presencial y que no quedó ningún registro en la base de datos",
-      "Iniciar de nuevo, aceptar como titular y verificar que queda registrado: aceptó el titular, la fecha, el canal Telegram y la versión del aviso",
+      "Iniciar de nuevo y aceptar como titular (el registro de la aceptación en la base de datos se verifica en F004, al completar la verificación de identidad)",
       "Verificar que solo después de aceptar se pide la cédula"
     ],
     "passes": false
@@ -34,12 +34,13 @@
     "category": "functional",
     "priority": 1,
     "description": "El usuario verifica en la web la identidad del paciente con la cédula y el código de un solo uso que llega por SMS y por correo.",
-    "stories": ["HU-002"],
+    "stories": ["HU-002", "HU-001"],
     "steps": [
-      "Aceptar el tratamiento de datos en la web e ingresar la cédula de un paciente de prueba con celular y correo registrados en la EPS simulada",
+      "Aceptar el tratamiento de datos en la web como tercero, anotar la hora de la aceptación e ingresar la cédula de un paciente de prueba con celular y correo registrados en la EPS simulada",
       "Verificar que el código llega por SMS y por correo (modo de prueba) y que ninguno de los dos mensajes incluye medicamentos ni diagnósticos",
       "Verificar que el código tiene 6 dígitos y que el SMS empieza por 'Pharma Express:', no tiene tildes y no pasa de 160 caracteres",
       "Ingresar el código correcto antes de 10 minutos y verificar que la identidad queda verificada",
+      "Verificar en la base de datos que quedó registrada la aceptación del tratamiento de datos: aceptó un tercero, la fecha y hora de la aceptación (no la de la verificación), el canal web y la versión del aviso (paso movido desde F001)",
       "Intentar usar el mismo código otra vez y verificar que se rechaza",
       "Verificar que al pedir el código con la cédula del paciente de prueba se muestra exactamente el mensaje: 'Si la cédula está afiliada a Salud Total o Sanitas, enviamos un código al celular registrado en tu EPS y al correo, si lo tiene. Si no te llega en 2 minutos, puedes pedir un código nuevo, actualizar tus datos en tu EPS o acudir a la atención presencial.'",
       "Ingresar una cédula que no existe en la EPS simulada y verificar que se muestra exactamente el mismo mensaje, que no se envía ningún código y que no se crea ninguna cuenta",
@@ -52,11 +53,12 @@
     "category": "functional",
     "priority": 1,
     "description": "El usuario verifica por Telegram la identidad del paciente con la cédula y el código de un solo uso que llega por SMS y por correo.",
-    "stories": ["HU-002"],
+    "stories": ["HU-002", "HU-001"],
     "steps": [
-      "Aceptar el tratamiento de datos en el bot y enviar la cédula de un paciente de prueba con celular y correo registrados",
+      "Aceptar el tratamiento de datos en el bot como titular, anotar la hora de la aceptación y enviar la cédula de un paciente de prueba con celular y correo registrados",
       "Verificar que el código llega por SMS y por correo (modo de prueba), sin medicamentos ni diagnósticos, que tiene 6 dígitos y que el SMS empieza por 'Pharma Express:', no tiene tildes y no pasa de 160 caracteres",
       "Enviar el código correcto antes de 10 minutos y verificar que la identidad queda verificada",
+      "Verificar en la base de datos que quedó registrada la aceptación del tratamiento de datos: aceptó el titular, la fecha y hora de la aceptación (no la de la verificación), el canal Telegram y la versión del aviso (paso movido desde F002)",
       "Enviar el mismo código otra vez y verificar que se rechaza",
       "Verificar que al enviar la cédula del paciente de prueba el bot responde exactamente: 'Si la cédula está afiliada a Salud Total o Sanitas, enviamos un código al celular registrado en tu EPS y al correo, si lo tiene. Si no te llega en 2 minutos, puedes pedir un código nuevo, actualizar tus datos en tu EPS o acudir a la atención presencial.'",
       "Enviar una cédula que no existe en la EPS simulada y verificar que el bot responde exactamente el mismo mensaje, que no se envía ningún código y que no se crea ninguna cuenta"
@@ -156,11 +158,11 @@
     "description": "Un cuidador o facilitador vincula varios pacientes al mismo navegador y escoge el paciente antes de cada gestión.",
     "stories": ["HU-005"],
     "steps": [
-      "En un navegador ya vinculado al paciente A, verificar la identidad del paciente B",
+      "En un navegador vinculado al paciente A, 2 meses después (mecanismo de prueba de tiempo de la arquitectura), verificar la identidad del paciente B",
       "Iniciar una gestión y verificar que la web pide escoger entre A y B antes de continuar",
       "Verificar que en la lista cada paciente se identifica por su nombre",
-      "Escoger B y verificar que solo se ven las fórmulas y citas de B",
-      "Llevar a vencimiento solo la vinculación de A y verificar que B sigue funcionando y A pide un código nuevo"
+      "Escoger B y verificar que la web indica que se gestiona a nombre de B y no muestra ningún dato de A (que solo se ven las solicitudes, fórmulas y citas de B se verifica en F035, prioridad 5)",
+      "Llevar el tiempo a los 3 meses de la vinculación de A y verificar que A pide un código nuevo y que B sigue funcionando sin pedir código hasta cumplir sus propios 3 meses"
     ],
     "passes": false
   },
@@ -174,7 +176,7 @@
       "En un chat ya vinculado al paciente A, verificar la identidad del paciente B",
       "Iniciar una gestión y verificar que el bot pide escoger entre A y B antes de continuar",
       "Verificar que en las opciones cada paciente se identifica por su nombre",
-      "Escoger A y verificar que solo se ven las fórmulas y citas de A",
+      "Escoger A y verificar que el bot indica que se gestiona a nombre de A y no muestra ningún dato de B (que solo se ven las solicitudes, fórmulas y citas de A se verifica en F036, prioridad 5)",
       "Llevar a vencimiento solo la vinculación de B y verificar que A sigue funcionando"
     ],
     "passes": false
@@ -182,14 +184,14 @@
   {
     "id": "F013",
     "category": "security",
-    "priority": 2,
+    "priority": 3,
     "description": "La API del paciente rechaza cualquier consulta o gestión que no venga de un canal con vinculación vigente a ese paciente.",
     "stories": ["HU-004"],
     "steps": [
-      "Llamar directamente a la API de consulta de citas sin vinculación y verificar que se rechaza",
-      "Llamar con la vinculación de un navegador vinculado al paciente A pidiendo datos del paciente B y verificar que se rechaza",
-      "Llamar con una vinculación vencida y verificar que se rechaza",
-      "Verificar que ninguna respuesta rechazada contiene medicamentos, diagnósticos ni cédulas"
+      "Llamar directamente, sin vinculación, a la API que registra la autorización de datos de salud de un paciente (F015) y verificar que se rechaza sin cambios",
+      "Llamar a esa API con la vinculación de un navegador vinculado al paciente A, actuando sobre el paciente B, y verificar que se rechaza sin cambios",
+      "Llamar con una vinculación vencida y verificar que se rechaza sin cambios",
+      "Verificar que ninguna respuesta rechazada contiene medicamentos, diagnósticos ni cédulas (el mismo rechazo en la consulta de citas se verifica en F035, prioridad 5)"
     ],
     "passes": false
   },
@@ -201,7 +203,7 @@
     "stories": ["HU-001", "HU-004"],
     "steps": [
       "Vincular el chat 1 al paciente A",
-      "Desde un chat 2 con el mismo nombre visible y otro usuario de Telegram, pedir las citas y verificar que el bot pide aceptar el aviso y verificar la identidad",
+      "Desde un chat 2 con el mismo nombre visible y otro usuario de Telegram, pedir las gestiones del paciente A y verificar que el bot pide aceptar el aviso y verificar la identidad y no muestra ningún dato de A (pedir las citas desde ese chat se verifica en F036, prioridad 5)",
       "Enviar al webhook una petición con el número de chat 2 y el usuario del chat 1 y verificar que no se devuelven datos de A",
       "Verificar que el bot no ha enviado mensajes a ningún chat que no lo haya iniciado"
     ],
@@ -215,6 +217,7 @@
     "stories": ["HU-006", "HU-007"],
     "steps": [
       "Con un navegador vinculado sin autorización de datos de salud, intentar cargar un documento y verificar que primero se pide esa autorización, separada del aviso de privacidad",
+      "Verificar que el texto de la autorización informa que los documentos se procesan con Microsoft Azure en Estados Unidos",
       "No autorizar e intentar cargar por la API y verificar que el archivo se rechaza y no se guarda",
       "Autorizar, cargar una fórmula en foto y una historia clínica en PDF de prueba y verificar que el sistema muestra los datos obtenidos por OCR",
       "Verificar que el documento guardado solo se abre con un enlace temporal y que el enlace deja de funcionar al vencer"
@@ -229,6 +232,7 @@
     "stories": ["HU-006", "HU-007"],
     "steps": [
       "Con un chat vinculado sin autorización de datos de salud, enviar una foto y verificar que el bot pide primero esa autorización y no guarda el archivo",
+      "Verificar que el texto de la autorización en el bot informa que los documentos se procesan con Microsoft Azure en Estados Unidos",
       "Autorizar, enviar una fórmula como foto normal de Telegram (no como archivo) y una historia clínica en PDF de prueba y verificar que el bot acepta la foto y confirma los datos obtenidos por OCR",
       "Verificar que el archivo quedó en almacenamiento privado y solo es accesible con enlace temporal"
     ],
@@ -246,6 +250,7 @@
       "Cargar una fórmula cuyo número de fórmula no coincide con la EPS simulada y verificar que se pide cargarla de nuevo; repetir con una fórmula cuya cédula no coincide y verificar lo mismo",
       "Cargar una historia clínica cuya cédula no coincide con la del paciente y verificar que se pide cargarla de nuevo",
       "Cargar una historia clínica que trae el código CIE-10 del diagnóstico de la fórmula y verificar que hay coincidencia; cargar otra sin código CIE-10 pero con la descripción del diagnóstico escrita con otras tildes y mayúsculas y verificar que también hay coincidencia",
+      "Cargar una historia clínica que trae el código CIE-10 de otro diagnóstico (no el de la fórmula) y la descripción del diagnóstico de la fórmula, y verificar que hay coincidencia por la descripción",
       "Cargar una historia clínica que no contiene el diagnóstico que la EPS simulada tiene para la fórmula y verificar que se pide cargar de nuevo la historia clínica",
       "Cargar un mismo documento ilegible 3 veces (la inicial y 2 recargas) y verificar que tras la tercera la fórmula queda no apta, no se ofrece otra carga y se orienta a la atención presencial",
       "Repetir con una carga inicial ilegible y una segunda carga legible y verificar que la fórmula sigue a la prevalidación",
@@ -262,6 +267,8 @@
     "stories": ["HU-008"],
     "steps": [
       "Enviar como foto normal una imagen ilegible y verificar que el bot pide enviarla de nuevo indicando el motivo y sugiere enviarla como archivo",
+      "Reenviar ese documento como archivo y verificar que cuenta como la segunda de las 3 cargas",
+      "Enviar como foto normal una fórmula legible y verificar que el bot la acepta sin sugerir enviarla como archivo",
       "Enviar una fórmula cuyo número de fórmula o cédula no coincide con la EPS simulada y verificar que el bot pide enviarla de nuevo",
       "Enviar un documento incompleto y verificar que se pide de nuevo",
       "Enviar una historia clínica que no contiene el diagnóstico que la EPS simulada tiene para la fórmula y verificar que el bot pide enviarla de nuevo",
@@ -502,12 +509,14 @@
     "category": "functional",
     "priority": 5,
     "description": "En la web, el usuario consulta sus citas y el código de entrega en QR y numérico cuando lo necesita.",
-    "stories": ["HU-016"],
+    "stories": ["HU-016", "HU-005", "HU-004"],
     "steps": [
       "Con una cita confirmada, abrir más tarde la web y consultar las citas",
       "Verificar que se ven el punto, la ventana y el código de entrega en QR y numérico, y que el código numérico tiene 8 dígitos",
       "Con dos citas en puntos distintos, verificar que cada una tiene su propio código",
-      "Desde un navegador sin vinculación vigente, verificar que el código no se muestra"
+      "Desde un navegador sin vinculación vigente, verificar que el código no se muestra",
+      "En un navegador vinculado a los pacientes A y B, cada uno con una solicitud y una cita, escoger B y verificar que solo se ven las solicitudes, fórmulas y citas de B (paso movido desde F011)",
+      "Llamar directamente a la API de consulta de citas sin vinculación, con la vinculación de A pidiendo las citas de B y con una vinculación vencida, y verificar que las tres llamadas se rechazan sin devolver medicamentos, diagnósticos ni cédulas (pasos movidos desde F013)"
     ],
     "passes": false
   },
@@ -516,11 +525,13 @@
     "category": "functional",
     "priority": 5,
     "description": "En Telegram, el usuario consulta sus citas y el código de entrega en QR y numérico cuando lo necesita.",
-    "stories": ["HU-016"],
+    "stories": ["HU-016", "HU-005", "HU-004"],
     "steps": [
       "Con una cita confirmada, pedir las citas al bot más tarde",
       "Verificar que el bot envía el punto, la ventana, la imagen QR y el código numérico de 8 dígitos",
-      "Desde un chat sin vinculación vigente, verificar que el código no se envía"
+      "Desde un chat sin vinculación vigente, verificar que el código no se envía",
+      "En un chat vinculado a los pacientes A y B, cada uno con una solicitud y una cita, escoger A y verificar que solo se ven las solicitudes, fórmulas y citas de A (paso movido desde F012)",
+      "Desde otro chat con el mismo nombre visible y otro usuario de Telegram, pedir las citas de A y verificar que el bot pide aceptar el aviso y verificar la identidad y no envía citas ni códigos de A (paso movido desde F014)"
     ],
     "passes": false
   },
@@ -573,8 +584,8 @@
     "steps": [
       "Preparar un paciente de prueba con documentos cargados, una prevalidación, una cita activa, una cita que el usuario canceló antes, y el navegador y un chat de Telegram vinculados",
       "Desde el navegador vinculado, escoger 'Revocar mi autorización' en la pantalla de inicio, ingresar la cédula y verificar que el sistema exige un código nuevo enviado por SMS y correo aunque el navegador esté vinculado; ingresar un código incorrecto y verificar que no se revoca",
-      "Verificar que el flujo pide declarar si quien revoca es el titular o un tercero que actúa con su autorización, sin pedir aceptar el aviso de privacidad, y que sin esa declaración la revocación no se completa",
-      "Declarar 'tercero', ingresar el código correcto y verificar que se confirma la revocación",
+      "Verificar que el flujo pide escoger entre 'Soy el titular' y 'Actúo con su autorización', sin pedir aceptar el aviso de privacidad, y que sin esa declaración la revocación no se completa",
+      "Escoger 'Actúo con su autorización' (tercero), ingresar el código correcto y verificar que se confirma la revocación",
       "Verificar en la base de datos que se eliminaron los documentos, los datos del OCR, los resultados de prevalidación, las solicitudes, las citas, las vinculaciones del navegador y del chat y los recordatorios programados, y que los documentos ya no se abren ni con un enlace temporal generado antes",
       "Verificar que la cita activa quedó cancelada, que en la base de datos su código quedó inválido (el rechazo en el panel del dispensador se prueba en F053, prioridad 7) y que el cupo y las existencias quedan disponibles para otra persona",
       "Verificar que se conserva la prueba del consentimiento y de la revocación (fecha, canal web, 'tercero' tal como se declaró y versión del aviso) ligada a una huella con clave secreta de la cédula, que no es la cédula en claro",
@@ -594,8 +605,8 @@
     "stories": ["HU-019"],
     "steps": [
       "Con un chat vinculado a un paciente con documentos cargados y dos citas activas, escoger en el bot 'Revocar mi autorización', enviar la cédula y verificar que exige un código nuevo enviado por SMS y correo aunque el chat esté vinculado",
-      "Verificar que el bot pide declarar si quien revoca es el titular o un tercero que actúa con su autorización, sin pedir aceptar el aviso de privacidad, y que sin esa declaración no completa la revocación",
-      "Declarar 'titular', enviar el código correcto y verificar que el bot confirma la revocación",
+      "Verificar que el bot pide escoger entre 'Soy el titular' y 'Actúo con su autorización', sin pedir aceptar el aviso de privacidad, y que sin esa declaración no completa la revocación",
+      "Escoger 'Soy el titular', enviar el código correcto y verificar que el bot confirma la revocación",
       "Verificar en la base de datos que se eliminaron documentos, datos del OCR, resultados de prevalidación, solicitudes, citas, vinculaciones y recordatorios programados",
       "Verificar que las dos citas activas quedaron canceladas y que el cupo y las existencias quedan disponibles",
       "Verificar que se conserva la prueba del consentimiento y de la revocación (fecha, canal Telegram, 'titular' tal como se declaró y versión del aviso) ligada a una huella con clave secreta de la cédula, y de cada cita solo punto, ventana, fecha y motivo",
@@ -693,14 +704,19 @@
     "id": "F047",
     "category": "notification",
     "priority": 6,
-    "description": "Cuando no hubo disponibilidad, el paciente recibe un único recordatorio a las 48 horas para volver a validar.",
+    "description": "Cuando no hubo disponibilidad, cada espera recibe un único recordatorio a las 48 horas para volver a validar (compartido por las fórmulas que quedaron esperando en la misma validación, y uno nuevo si al volver a validar tampoco hay disponibilidad), con 1 hora de tolerancia, a las 7:00 si la marca cae de noche, y se envía igual, como incumplimiento, si sale más tarde por una falla.",
     "stories": ["HU-015"],
     "steps": [
       "Provocar a las 10:00 el caso sin existencias en ningún punto",
       "Verificar que el recordatorio no sale antes de cumplirse las 48 horas y que sale por todos los medios a más tardar 1 hora después (entre las 10:00 y las 11:00 del tercer día)",
-      "Provocar el caso a las 23:30 y verificar que, como la marca de 48 horas cae entre las 21:00 y las 7:00, el recordatorio sale a las 7:00 siguientes y no antes",
-      "Verificar que no se envía ningún otro recordatorio por ese caso después",
+      "Provocar el caso a las 23:30 y verificar que, como la marca de 48 horas cae entre las 21:00 y las 7:00, el recordatorio sale a las 7:00 siguientes, no antes, y a más tardar a las 8:00",
+      "Verificar que, si el usuario no vuelve a validar, no se envía ningún otro recordatorio por esa espera",
+      "En una solicitud con dos fórmulas, dejar las dos sin disponibilidad en la misma validación y verificar que reciben un solo recordatorio de 48 horas para las dos y no uno por fórmula",
+      "Después de recibir el primer recordatorio de 48 horas de esa espera, volver a validar (F096) con disponibilidad solo para una de las dos fórmulas y verificar que la otra empieza una espera nueva: se informa otra vez la espera de 48 horas y sale un recordatorio propio de esa espera 48 horas después de la nueva validación, con la misma tolerancia y la misma regla de las 7:00",
+      "Verificar en el modo de prueba que en esa solicitud salieron exactamente dos recordatorios de 48 horas por cada medio: uno por la primera espera y otro por la espera nueva",
+      "Simular con el mecanismo de prueba de tiempo de la arquitectura una falla que retrase el envío más de 1 hora después de la marca de 48 horas y verificar que el recordatorio se envía igual y que queda registrado un incumplimiento sin cédulas, diagnósticos ni medicamentos",
       "Cancelar la solicitud (F094) antes de que se cumplan las 48 horas y verificar que el recordatorio no se envía",
+      "En otra solicitud sin disponibilidad, con el mecanismo de prueba de tiempo retrasar el envío del recordatorio y volver a validar (F096) apenas se cumplen las 48 horas, antes de que salga; verificar que el recordatorio de esa espera no se envía por ningún medio y que, si al volver a validar tampoco hay disponibilidad, solo sale el recordatorio de la espera nueva (criterio 9 de HU-015, Inferido)",
       "Verificar que el texto no presenta las 48 horas como cumplimiento normativo"
     ],
     "passes": false
@@ -1051,11 +1067,12 @@
     "id": "F072",
     "category": "security",
     "priority": 8,
-    "description": "Una cuenta de dispensador desactivada pierde el acceso de inmediato y solo el administrador puede gestionar cuentas de dispensadores.",
-    "stories": ["HU-033"],
+    "description": "Una cuenta de dispensador desactivada pierde el acceso de inmediato, no recupera la contraseña, y solo el administrador puede gestionar cuentas de dispensadores.",
+    "stories": ["HU-033", "HU-036"],
     "steps": [
       "Iniciar sesión como dispensador y, con la sesión abierta, desactivar la cuenta desde el panel de administración",
       "Hacer una petición a la API del panel del dispensador con la sesión abierta y verificar que se rechaza",
+      "Con la cuenta desactivada, pedir la recuperación de contraseña con su correo y verificar que la respuesta en pantalla es idéntica a la de una cuenta activa y que no se envía ningún enlace (paso movido desde F082)",
       "Llamar a la API de gestión de cuentas sin sesión y verificar que responde 401",
       "Llamar con sesión de dispensador y verificar que responde 403 y que no se creó ni cambió ninguna cuenta",
       "Llamar con la vinculación de un paciente y verificar que se rechaza"
@@ -1212,13 +1229,12 @@
       "Pedir la recuperación con un correo que no tiene cuenta y verificar que la respuesta en pantalla es idéntica a la del paso anterior y que no se envía ningún correo",
       "Pedir 3 recuperaciones para el mismo correo en una hora y verificar que la cuarta no envía enlace y que la respuesta en pantalla es idéntica a las anteriores",
       "Pedir 4 recuperaciones en una hora con un mismo correo que no tiene cuenta y verificar que la cuarta recibe la misma respuesta en pantalla (el límite se cuenta por correo ingresado, exista o no la cuenta)",
-      "Desactivar la cuenta, pedir la recuperación con su correo y verificar que la respuesta en pantalla es idéntica y que no se envía ningún enlace",
       "Con un enlace vigente, intentar una contraseña de menos de 15 caracteres y una común o filtrada y verificar que ambas se rechazan",
       "Abrir un enlace con más de 30 minutos (mecanismo de prueba de tiempo) y verificar que se rechaza",
       "Con una sesión abierta en otro navegador, usar un enlace vigente para cambiar la contraseña y verificar que no se inicia sesión automáticamente, que la API rechaza la sesión abierta y que llega un correo avisando del cambio",
       "Abrir de nuevo el mismo enlace y verificar que se rechaza",
       "Iniciar sesión con la contraseña nueva y verificar que funciona y que la anterior ya no",
-      "Verificar que el correo y la pantalla no muestran la contraseña y que la acción no expone el enlace completo en la auditoría ni en los logs"
+      "Verificar que el correo y la pantalla no muestran la contraseña y que la acción no expone el enlace completo en la auditoría ni en los logs (la recuperación con una cuenta desactivada se prueba en F072, prioridad 8, porque desactivar cuentas es del panel de administración)"
     ],
     "passes": false
   },
@@ -1374,7 +1390,7 @@
       "Ingresar la cédula y verificar que se muestra exactamente el mensaje único de HU-002 y que llega un código nuevo por SMS y correo (modo de prueba)",
       "Repetir con una cédula inexistente en la EPS simulada y verificar que se muestra el mismo mensaje y no se envía ningún código",
       "Ingresar 3 códigos incorrectos y luego el correcto y verificar que no se revoca; pedir un código nuevo pasados 2 minutos y verificar que el anterior queda anulado",
-      "Verificar que el flujo pide declarar si quien revoca es el titular o un tercero que actúa con su autorización y que sin esa declaración no se completa; declarar 'titular'",
+      "Verificar que el flujo pide escoger entre 'Soy el titular' y 'Actúo con su autorización' y que sin esa declaración no se completa; escoger 'Soy el titular'",
       "Ingresar el código nuevo correcto y verificar que se confirma la revocación",
       "Verificar en la base de datos que se eliminaron los datos del paciente y sus vinculaciones, que las dos citas quedaron canceladas y liberaron cupo y existencias, y que se guardó la prueba de la revocación (fecha, canal web, 'titular' tal como se declaró y versión del aviso) ligada a una huella con clave secreta de la cédula aunque no se aceptó el aviso",
       "Verificar que el navegador no quedó vinculado a ningún paciente: al intentar consultar citas se pide aceptar el aviso y verificar la identidad",
@@ -1393,7 +1409,7 @@
       "Preparar un paciente de prueba con documentos cargados y una cita activa, e iniciar el bot desde un chat que nunca se ha vinculado",
       "Verificar que el bot ofrece 'Revocar mi autorización'; escogerla y verificar que no pide aceptar el aviso de privacidad y que informa que la cédula se usa solo para verificar la identidad y atender la solicitud",
       "Enviar la cédula y verificar que el bot responde exactamente el mensaje único de HU-002 y que llega un código nuevo por SMS y correo; repetir con una cédula inexistente y verificar el mismo mensaje sin envío de código",
-      "Verificar que el bot pide declarar si quien revoca es el titular o un tercero que actúa con su autorización y que sin esa declaración no completa la revocación; declarar 'tercero'",
+      "Verificar que el bot pide escoger entre 'Soy el titular' y 'Actúo con su autorización' y que sin esa declaración no completa la revocación; escoger 'Actúo con su autorización' (tercero)",
       "Enviar un código vencido (más de 10 minutos) y verificar que se rechaza; pedir uno nuevo y enviarlo correcto",
       "Verificar que el bot confirma la revocación, que se eliminaron los datos del paciente, que la cita quedó cancelada y liberó cupo y existencias, y que se guardó la prueba de la revocación (fecha, canal Telegram, 'tercero' tal como se declaró y versión del aviso) ligada a una huella con clave secreta de la cédula",
       "Verificar que el chat no quedó vinculado a ningún paciente",
@@ -1443,7 +1459,8 @@
       "Verificar que la web ofrece volver a validar en esa misma solicitud y que no pide cargar de nuevo la fórmula ni la historia clínica",
       "Volver a validar y verificar que se repiten las reglas de la prevalidación con los datos ya obtenidos y la consulta de disponibilidad, y que ahora se ofrecen ventanas",
       "Confirmar una cita y verificar que pertenece a la misma solicitud y que no se creó una solicitud nueva",
-      "Repetir dejando un cambio en la EPS simulada (por ejemplo, la fórmula deja de estar vigente) y verificar que al volver a validar la fórmula queda no apta"
+      "Repetir dejando un cambio en la EPS simulada (por ejemplo, la fórmula deja de estar vigente) y verificar que al volver a validar la fórmula queda no apta",
+      "Repetir sin agregar existencias: al volver a validar a las 48 horas, verificar que la web informa otra vez la espera de 48 horas, que no ofrece volver a validar antes de que se cumpla esa espera nueva y que sí lo ofrece al cumplirse (el recordatorio de la espera nueva se verifica en F047 y su cierre por inactividad en F098, prioridad 6)"
     ],
     "passes": false
   },
@@ -1456,8 +1473,9 @@
     "steps": [
       "Provocar por el bot el caso sin existencias en ningún punto y verificar que el bot informa la espera de 48 horas y no ofrece volver a validar antes de que se cumplan",
       "Llevar el tiempo a las 48 horas y agregar existencias con el mecanismo de datos de prueba",
-      "Pedir al bot volver a validar esa solicitud y verificar que no pide reenviar documentos",
-      "Verificar que el bot ofrece ventanas y que la cita confirmada pertenece a la misma solicitud"
+      "Pedir al bot volver a validar esa fórmula de la solicitud y verificar que no pide reenviar documentos",
+      "Verificar que el bot ofrece ventanas y que la cita confirmada pertenece a la misma solicitud",
+      "Repetir sin agregar existencias: al volver a validar a las 48 horas, verificar que el bot informa otra vez la espera de 48 horas como plazo propio del producto y que no ofrece volver a validar antes de que se cumpla esa espera nueva (el recordatorio de la espera nueva se verifica en F047, prioridad 6)"
     ],
     "passes": false
   },
@@ -1465,7 +1483,7 @@
     "id": "F098",
     "category": "functional",
     "priority": 6,
-    "description": "Las solicitudes y fórmulas abandonadas se cierran solas: 24 horas sin actividad en carga o prevalidación, fórmula apta sin cita 24 horas después de prevalidar, o 24 horas después del recordatorio de 48 horas.",
+    "description": "Las solicitudes y fórmulas abandonadas se cancelan solas, sin avisar al paciente: 24 horas sin actividad en carga o prevalidación, fórmula apta sin cita 24 horas después de prevalidar, o 24 horas después del recordatorio de 48 horas de su espera.",
     "stories": ["HU-038", "HU-035"],
     "steps": [
       "Iniciar una solicitud, cargar solo una fórmula y no hacer nada más; llevar el tiempo a 23 horas y 59 minutos y verificar que sigue abierta; llevarlo a 24 horas y verificar en la web y en Telegram que la solicitud quedó cerrada y ya no cuenta en el límite de 2",
@@ -1473,7 +1491,11 @@
       "Prevalidar una solicitud de una sola fórmula, apta, sin confirmar cita; llevar el tiempo a 24 horas después de la prevalidación y verificar que la fórmula quedó cancelada y la solicitud deja de contar como abierta",
       "En una solicitud con una fórmula con cita activa y otra apta sin cita, llevar el tiempo a 24 horas después de la prevalidación y verificar que solo se cierra la fórmula sin cita y que la cita activa no cambia",
       "Provocar el caso sin disponibilidad, verificar que la fórmula no se cierra a las 24 horas de la prevalidación, dejar que salga el recordatorio de 48 horas y verificar que la fórmula se cierra 24 horas después del envío de ese recordatorio si el usuario no volvió a validar",
-      "Verificar que ningún cierre automático cancela una cita activa"
+      "En una solicitud con dos fórmulas sin disponibilidad en la misma validación, no volver a validar y verificar que las dos se cierran a la vez, 24 horas después del envío del recordatorio que comparten",
+      "Provocar el caso sin disponibilidad, volver a validar a las 48 horas sin que haya otra vez disponibilidad (F096) y verificar que la fórmula no se cierra 24 horas después del primer recordatorio, sino 24 horas después del envío del recordatorio de la espera nueva, si el usuario no la agenda",
+      "Verificar que ningún cierre automático cancela una cita activa",
+      "Verificar que las fórmulas cerradas por inactividad aparecen como canceladas en la web y en Telegram",
+      "Verificar en el modo de prueba que ninguno de estos cierres por inactividad envió notificación al paciente por ningún medio (navegador, Telegram, SMS ni correo)"
     ],
     "passes": false
   },

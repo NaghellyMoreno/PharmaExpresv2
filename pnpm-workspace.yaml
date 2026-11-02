@@ -1,0 +1,9 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Scripts de instalación permitidos (pnpm 12 los bloquea por defecto).
+allowBuilds:
+  "@embedded-postgres/darwin-arm64": true
+  "@swc/core": true
+  esbuild: true

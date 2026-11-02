@@ -2,6 +2,19 @@
 
 Reglas propias de este proyecto para cada agente. Complementan los agentes y skills genéricos del sistema; si algo de aquí choca con el contexto, manda el contexto.
 
+## Todos los agentes: cuándo preguntar a la usuaria
+- Presupuesto US$0: es un prototipo universitario (Universidad de Caldas). Solo se usan servicios gratuitos o cuentas de estudiante sin tarjeta. Nunca propongas un servicio de pago.
+- Pregunta a la usuaria solo si la decisión:
+  1. cambia lo que ve o vive el paciente, el dispensador o el administrador, y el contexto no la cubre;
+  2. tiene costo;
+  3. contradice el contexto;
+  4. no se puede deshacer;
+  5. requiere una acción suya (crear cuentas, dominio, teléfono).
+- Todo lo demás es una decisión técnica: tómala con la opción más simple y segura, escríbela en el ADR como "Decisión técnica" y no la preguntes. Ejemplos: nombres de variables, reintentos, frecuencias internas, normalización de textos, bordes de franjas horarias, estados internos, regiones de los servicios y librerías gratuitas. La aprobación de la arquitectura en la compuerta 2 las aprueba en bloque.
+- Haz una sola ronda de preguntas por fase, todas juntas, cada una con tu recomendación. Si la usuaria responde "acepto las recomendaciones", aplícalas todas.
+- La configuración externa que falta (cuentas, dominio, teléfono, precios por confirmar) no bloquea: se construye y se prueba en modo `capture` o con datos simulados. Lístala en una sección "Configuración antes de publicar".
+- Es un prototipo: prefiere lo simple a lo exhaustivo. No diseñes para escala ni para casos que el contexto no menciona.
+
 ## product-manager
 - Orden del recorrido para `priority`: consentimiento e identidad, vinculación de canales, documentos, prevalidación, reserva y agenda, notificaciones, panel del dispensador y panel de administración.
 - Canales: web y Telegram. Una funcionalidad por canal cuando la capacidad existe en ambos.
@@ -39,6 +52,8 @@ Errores comunes:
 ## readiness-reviewer
 - Las 13 decisiones de la sección architect tienen ADR. La de recordatorios tiene una opción elegida por la usuaria o está marcada como pendiente bloqueante.
 - Cada requisito de la sección 3.13 tiene RNF y mecanismo.
+- Las decisiones técnicas y la configuración externa pendiente no son hallazgos. Solo es hallazgo lo que impide construir o probar una funcionalidad, o lo que contradice el contexto.
+- CONCERNS permite avanzar a la implementación; los hallazgos menores se corrigen durante ella. Solo un hallazgo crítico da FAIL.
 
 ## developer
 - Datos de prueba: solo ficticios y los contactos de prueba de la usuaria (sección 3.2).

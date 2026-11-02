@@ -1,7 +1,7 @@
 # 0020. Rendimiento y su medición (pregunta P40)
 
-- **Estado:** Propuesta (la usuaria confirma la definición de medición; las cifras son Confirmadas)
-- **Fecha:** 2026-10-31
+- **Estado:** Aceptada (2026-11-01). La usuaria aprobó la propuesta de medición (P40, R-12); las cifras son de la sección 3.15.
+- **Fecha:** 2026-10-31 (actualizada el 2026-11-01)
 - **Fuente:** sección 3.15; brief (pregunta abierta P40); RNF-022, RNF-029, RNF-030, RNF-031; F088 a F091
 
 ## Contexto
@@ -14,8 +14,8 @@ Cifras confirmadas: con 4G lenta simulada, en el 75 % de las visitas: carga de l
 - Prevalidación: OCR por documento en paralelo al completar cada carga; la pantalla y el bot muestran "procesando" y consultan el estado.
 - Bot: respuesta inmediata y trabajo largo después (ADR 0008).
 
-## Propuesta de medición (P40)
-| Punto | Propuesta | Razón |
+## Medición aprobada (P40, Confirmado)
+| Punto | Decisión | Razón |
 | --- | --- | --- |
 | (a) Consultas normales | Todas las peticiones de la API excepto completar una carga, iniciar la prevalidación, el webhook de Telegram y las tareas programadas | Tienen cifras propias o no son interactivas |
 | (b) 75 % de las visitas | 10 mediciones de Lighthouse CI por pantalla principal de cada experiencia en la vista previa publicada, perfil móvil con 4G lenta; cumple si al menos 8 de 10 (≥ 75 %) pasan LCP ≤ 2,5 s y CLS ≤ 0,1; para la interacción, que no se mide en laboratorio, se usa TBT ≤ 200 ms como sustituto más una prueba de Playwright que mide la respuesta a la acción principal con CPU y red limitadas | Sin tráfico real no hay datos de campo |
@@ -30,3 +30,5 @@ Cifras confirmadas: con 4G lenta simulada, en el 75 % de las visitas: carga de l
 
 ## Consecuencias
 - Riesgos: suspensión de Neon gratuito y arranques en frío pueden afectar p95 y los 3 s del bot.
+- El lector de QR con cámara (`barcode-detector` y su WebAssembly, ADR 0015) se carga solo al pulsar su botón: no cuenta en los 200 KB iniciales del panel del dispensador.
+- Volver a validar (sin OCR) y cancelar una solicitud son consultas normales: entran en el p95 de 1 segundo.

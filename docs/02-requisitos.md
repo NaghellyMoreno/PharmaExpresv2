@@ -1,6 +1,6 @@
 # Requisitos: Pharma Express
 
-Fuentes: `docs/00-contexto-producto.md` (versión 6) y `docs/01-brief.md`.
+Fuentes: `docs/00-contexto-producto.md` (versión 7) y `docs/01-brief.md`. Las decisiones de la usuaria del 2026-11-01 sobre el informe de preparación (`docs/04-readiness.md`) se citan como "Confirmado (usuaria, R-<n>)". La usuaria aprobó en bloque las propuestas de architect, salvo la del ADR 0008 sobre fotos en Telegram; los criterios que dependían de esas propuestas se citan como "Confirmado (propuesta aprobada, ADR <n>)".
 
 Convención: "el usuario" es cualquier persona que usa la web o el bot en nombre de un paciente (paciente, cuidador, tutor o facilitador); el sistema no los distingue (sección 3.3). "Medios del paciente" son: notificación web a los navegadores vinculados, Telegram a los chats vinculados, SMS al celular registrado en la EPS simulada y correo si existe (sección 3.6). Salvo indicación, cada historia aplica igual en web y en Telegram (sección 3.1) y a Salud Total y Sanitas (sección 3.8). Las preguntas citadas como "P<n>" están en `docs/01-brief.md` (resueltas o abiertas). "Confirmado (usuaria, P<n>)" significa respuesta de la usuaria a esa pregunta. Todas las horas son de America/Bogota.
 
@@ -13,7 +13,7 @@ Convención: "el usuario" es cualquier persona que usa la web o el bot en nombre
 - **Fuente:** secciones 3.1 y 3.2 del contexto
 - **Criterios de aceptación:**
   1. Dado un usuario que entra por primera vez por web o inicia el bot, cuando se le presenta el servicio, entonces ve el aviso de privacidad y la declaración "soy el titular o actúo con su autorización" antes de que se le pida cualquier dato, incluida la cédula. La única excepción es la opción "Revocar mi autorización" (criterio 5 y HU-019).
-  2. Dado el aviso, cuando el usuario acepta, entonces queda registrado si aceptó el titular o un tercero, la fecha, el canal y la versión del aviso (sección 3.2).
+  2. Dado el aviso, cuando el usuario acepta, entonces queda registrado si aceptó el titular o un tercero, la fecha, el canal y la versión del aviso (sección 3.2). La fecha registrada es la de la aceptación, no la de un paso posterior (sección 3.2: "Se registra ... la fecha"). Según la arquitectura aprobada, la aceptación queda ligada al paciente cuando se verifica la identidad (HU-002), así que QA comprueba el registro en la base de datos después de esa verificación (R-29).
   3. Dado el aviso, cuando el usuario no acepta, entonces no se registra ningún dato suyo y se le informa que puede acudir a la atención presencial.
   4. Dado Telegram, cuando una persona no ha iniciado el bot, entonces el bot no le escribe.
   5. Dado la pantalla de inicio de la web o del bot, con o sin canal vinculado, cuando se muestra, entonces ofrece también la opción "Revocar mi autorización", que no exige aceptar el aviso de privacidad (sección 3.2).
@@ -56,8 +56,8 @@ Convención: "el usuario" es cualquier persona que usa la web o el bot en nombre
   3. Dado un canal con vinculación de más de 3 meses, cuando el usuario intenta consultar o gestionar, entonces el canal no muestra información, no permite gestiones y exige un código nuevo. La revocación sigue disponible, con su propia verificación (HU-019, sección 3.2).
   4. Dado un canal con vinculación vencida, cuando se envía una notificación al paciente, entonces ese canal no la recibe y los SMS y correos sí llegan.
   5. Dado un canal vinculado, cuando el usuario desvincula un paciente en cualquier momento, entonces ese canal deja de mostrar su información, de permitir gestiones y de recibir sus notificaciones, y volver a usarlo exige un código nuevo. Confirmado (usuaria, P14).
-  6. Dado un canal vinculado a varios pacientes, cuando el usuario desvincula uno, entonces las demás vinculaciones del canal siguen vigentes. Inferido.
-- **Estado:** Confirmado (criterio 6 Inferido)
+  6. Dado un canal vinculado a varios pacientes, cuando el usuario desvincula uno, entonces las demás vinculaciones del canal siguen vigentes. Confirmado (propuesta aprobada, ADR 0007).
+- **Estado:** Confirmado
 
 ### HU-005: Gestionar a varios pacientes desde un mismo canal
 - **Historia:** Como cuidador o facilitador comunitario, quiero vincular varios pacientes a mi navegador o chat, para apoyarlos desde un solo lugar.
@@ -68,7 +68,7 @@ Convención: "el usuario" es cualquier persona que usa la web o el bot en nombre
   3. Dado un paciente escogido, cuando el usuario consulta o gestiona, entonces solo ve y modifica la información de ese paciente.
   4. Dado cada vinculación, cuando una vence, entonces solo esa vinculación deja de funcionar; las demás del mismo canal siguen vigentes.
   5. Dado un canal vinculado a varios pacientes, cuando el usuario debe escoger el paciente, entonces cada uno se identifica por su nombre. Confirmado (usuaria, P13).
-- **Estado:** Confirmado (criterio 4 Inferido de "toda vinculación vence a los 3 meses")
+- **Estado:** Confirmado (criterio 4: propuesta aprobada, ADR 0007)
 
 ### Documentos
 
@@ -78,7 +78,9 @@ Convención: "el usuario" es cualquier persona que usa la web o el bot en nombre
 - **Criterios de aceptación:**
   1. Dado un canal vinculado sin autorización de datos de salud, cuando el usuario intenta cargar un documento, entonces el sistema pide primero la autorización, separada de la aceptación del tratamiento de datos.
   2. Dado que el usuario no da la autorización, cuando intenta cargar un documento, entonces el sistema no recibe ni guarda el archivo.
-- **Estado:** Confirmado
+  3. Dado el texto de la autorización de datos de salud, en la web y en el bot, cuando se muestra, entonces informa que los documentos se procesan con Microsoft Azure en Estados Unidos. Confirmado (usuaria, decisión sobre el ADR 0012).
+  4. Dado una autorización de datos de salud, cuando se registra, entonces queda ligada a la versión del texto que se mostró, para saber si el usuario vio el aviso sobre Microsoft Azure. Inferido (por analogía con la versión del aviso de privacidad, sección 3.2).
+- **Estado:** Confirmado (criterio 4 Inferido)
 
 ### HU-007: Cargar fórmulas e historia clínica
 - **Historia:** Como usuario, quiero cargar las fórmulas y la historia clínica en foto o PDF, para que el sistema las prevalide.
@@ -92,8 +94,9 @@ Convención: "el usuario" es cualquier persona que usa la web o el bot en nombre
   6. Dado una solicitud, cuando el usuario carga los documentos, entonces carga una sola historia clínica para toda la solicitud y una o varias fórmulas (sección 3.4).
   7. Dado el diagnóstico de cada fórmula, cuando se prevalida, entonces se toma de la EPS simulada y se comprueba que la historia clínica lo contiene; el sistema nunca escoge por su cuenta entre varios diagnósticos de la historia clínica (sección 3.4).
   8. Dado un paciente para el que ya se cargaron 20 archivos en la última hora, cuando se carga otro por cualquier canal, entonces se rechaza con un mensaje claro (sección 3.13, punto 5).
-  9. Dado Telegram, cuando el usuario envía un documento como foto normal (no como archivo), entonces el bot la acepta; solo si el OCR no obtiene los datos de esa foto, el bot sugiere enviarla como archivo. Confirmado (usuaria). Que ese nuevo envío cuente como una recarga de HU-008: Inferido.
-- **Estado:** Confirmado (criterio 9 en parte Inferido)
+  9. Dado Telegram, cuando el usuario envía un documento como foto normal (no como archivo), entonces el bot la acepta; solo si el OCR no obtiene los datos de esa foto, el bot sugiere enviarla como archivo. Confirmado (usuaria, decisión sobre el ADR 0008, que reemplaza la propuesta de pedir siempre el envío como archivo). La foto fallida cuenta como una carga y el nuevo envío como una recarga de HU-008. Confirmado (propuesta aprobada, ADR 0012: un archivo rechazado cuenta como carga).
+  10. Dado que el servicio de OCR no responde, cuando se procesa un documento, entonces esa carga no se descuenta de las 3 de HU-008 y el sistema reintenta. Confirmado (propuesta aprobada, ADR 0012).
+- **Estado:** Confirmado
 
 ### HU-008: Documento del que no se obtienen datos
 - **Historia:** Como usuario, quiero saber cuándo un documento no se pudo leer, para cargarlo de nuevo o buscar otra vía.
@@ -105,7 +108,7 @@ Convención: "el usuario" es cualquier persona que usa la web o el bot en nombre
   4. Dado que el problema persiste en la tercera carga, cuando se procesa, entonces la fórmula queda no apta, no se ofrece otra carga y se orienta al usuario a la atención presencial.
   5. Dado que la historia clínica falla en la tercera carga por ser ilegible o estar incompleta, cuando se procesa, entonces quedan no aptas todas las fórmulas de la solicitud (sección 3.4).
   6. Dado que la historia clínica se lee pero en la tercera carga sigue sin contener el diagnóstico de una fórmula, cuando se procesa, entonces solo esa fórmula queda no apta y las demás continúan (sección 3.4).
-  7. Qué es "coincidencia con la EPS simulada" (sección 3.4). Dado una fórmula, cuando se procesa, entonces coincide si el número de fórmula y la cédula que trae coinciden con los de la EPS simulada. Dado una historia clínica, cuando se procesa, entonces coincide si trae la cédula del paciente y el código CIE-10 del diagnóstico que la EPS simulada tiene para la fórmula; si no trae código, coincide si trae la descripción de ese diagnóstico, comparada sin tildes ni mayúsculas. Si no coincide, aplica la regla de recarga. Confirmado (usuaria, R-04).
+  7. Qué es "coincidencia con la EPS simulada" (sección 3.4). Dado una fórmula, cuando se procesa, entonces coincide si el número de fórmula y la cédula que trae coinciden con los de la EPS simulada. Dado una historia clínica, cuando se procesa, entonces coincide si trae la cédula del paciente y el código CIE-10 del diagnóstico que la EPS simulada tiene para la fórmula; si ese código no aparece en la historia clínica, coincide si trae la descripción de ese diagnóstico, comparada sin tildes ni mayúsculas, aunque la historia clínica traiga otros códigos CIE-10 (lectura (a) del ADR 0012). Si no coincide, aplica la regla de recarga. Confirmado (sección 3.4; usuaria, R-04).
 - **Estado:** Confirmado
 
 ### Prevalidación
@@ -183,16 +186,18 @@ Convención: "el usuario" es cualquier persona que usa la web o el bot en nombre
 - **Fuente:** secciones 3.5 y 3.11 del contexto
 - **Criterios de aceptación:**
   1. Dado un medicamento sin existencias en ningún punto, o sin ventanas con cupo en los días permitidos, cuando se consulta la disponibilidad, entonces no se crea un pendiente y se informa que debe esperar 48 horas para volver a validar.
-  2. Dado ese caso, cuando pasan 48 horas, entonces el sistema envía un único recordatorio por los medios del paciente.
+  2. Dado ese caso, cuando pasan 48 horas, entonces el sistema envía un único recordatorio de esa espera por los medios del paciente (criterio 12).
   3. Dado el mensaje y el recordatorio, cuando se leen, entonces presentan las 48 horas como un plazo propio del producto y no como cumplimiento de una norma.
   4. Dado ese caso, cuando el inventario cambia, entonces el sistema no avisa; no vigila el inventario.
   5. Dado ese caso, cuando aún no han pasado 48 horas, entonces no se ofrece volver a validar (sección 3.5: "debe esperar 48 horas para volver a validar").
-  6. Dado ese caso, cuando pasan las 48 horas, entonces el usuario vuelve a validar en la misma solicitud, por web o Telegram, sin cargar de nuevo los documentos. Confirmado (usuaria, R-05). Que "volver a validar" repita las reglas de la prevalidación con los datos ya obtenidos y luego la consulta de disponibilidad: Inferido.
-  7. Dado el recordatorio de las 48 horas, cuando se envía, entonces nunca sale antes de cumplirse las 48 horas y sale como máximo 1 hora después; si la marca de las 48 horas cae entre las 21:00 y las 7:00, sale a las 7:00. Confirmado (usuaria). Caso límite (marca antes de las 21:00 con envío que pasaría de las 21:00) y tolerancia del envío de las 7:00: Pendiente (P41).
-  8. Dado ese caso, cuando el usuario no vuelve a validar ni confirma una cita en las 24 horas siguientes al envío del recordatorio, entonces la fórmula se cierra (HU-038). Confirmado (usuaria, R-05).
-  9. Dado que la fórmula se cerró o la solicitud se canceló antes de cumplirse las 48 horas, cuando llega la hora del recordatorio, entonces no se envía. Inferido.
-  10. Dado que, al volver a validar, otra vez no hay existencias ni cupo, cuando se informa, entonces se aplica de nuevo la espera de 48 horas con su único recordatorio. Inferido (P43).
-- **Estado:** Confirmado (criterios 6, 9 y 10 en parte Inferidos; criterio 7 con un caso límite Pendiente)
+  6. Dado ese caso, cuando pasan las 48 horas, entonces el usuario vuelve a validar en la misma solicitud, por web o Telegram, sin cargar de nuevo los documentos (sección 3.5; usuaria, R-05). Volver a validar repite las reglas de la prevalidación con los datos ya obtenidos de los documentos y los datos actuales de la EPS simulada, sin volver a leer los documentos ni consumir cargas, y luego consulta otra vez la disponibilidad. Confirmado (propuesta aprobada, ADR 0011).
+  7. Dado el recordatorio de las 48 horas, cuando se envía, entonces nunca sale antes de cumplirse las 48 horas y sale como máximo 1 hora después; si la marca de las 48 horas cae entre las 21:00 (incluida) y las 7:00 (excluida), sale a las 7:00 siguientes y la hora de tolerancia se cuenta desde las 7:00. Si una ejecución retrasada llega a caer entre las 21:00 y las 7:00, se pasa a las 7:00. Confirmado (sección 3.5; propuestas aprobadas, ADR 0011). Cierra P41.
+  8. Dado ese caso, cuando el usuario no vuelve a validar ni confirma una cita en las 24 horas siguientes al envío del recordatorio de la espera de esa fórmula, entonces la fórmula se cancela (HU-038). Confirmado (sección 3.5).
+  9. Dado que la fórmula se cerró o la solicitud se canceló antes de cumplirse las 48 horas, cuando llega la hora del recordatorio, entonces no se envía. Confirmado (propuesta aprobada, ADR 0011: el despachador comprueba el estado actual y una solicitud cancelada cancela sus tareas pendientes). Del mismo modo, si el usuario vuelve a validar la fórmula (posible desde que se cumplen las 48 horas) antes de que salga el recordatorio de la espera vigente, ese recordatorio no se envía, porque el usuario ya retomó la espera; si al volver a validar tampoco hay disponibilidad, rige solo el recordatorio de la espera nueva. Inferido (consecuencia de la propuesta aprobada en el ADR 0011, decisión 9: volver a validar se habilita a las 48 horas del inicio de la espera, aunque el recordatorio salga más tarde; requiere confirmación de la usuaria).
+  10. Dado que, al volver a validar, otra vez no hay existencias ni cupo, cuando se informa, entonces empieza una espera nueva con las mismas reglas de los criterios 1 a 9 y 11: se informa otra vez la espera de 48 horas, volver a validar se ofrece de nuevo al cumplirse esas 48 horas, la espera nueva tiene su propio recordatorio a las 48 horas y la fórmula se cancela si no se agenda en las 24 horas siguientes al envío de ese recordatorio. Pasa igual cada vez que, al volver a validar, no hay disponibilidad. Confirmado (sección 3.5; usuaria, P43).
+  11. Dado que el recordatorio de las 48 horas sale más de 1 hora tarde por una falla, cuando el sistema lo detecta, entonces lo envía igual y queda registrado como incumplimiento, sin cédulas, diagnósticos ni medicamentos. Confirmado (usuaria, decisión 1 del 2026-11-01).
+  12. Dado varias fórmulas de una solicitud que quedan sin disponibilidad en una misma validación, cuando empieza su espera, entonces comparten un solo recordatorio de 48 horas y un solo plazo de cancelación, contados desde esa validación: no hay un recordatorio por fórmula. Si otras fórmulas de la misma solicitud empiezan a esperar en otra validación, esa espera tiene su propio recordatorio y su propio plazo, y el plazo de cada fórmula se cuenta solo desde el recordatorio de su espera. Mientras su espera no se cumple, una fórmula no puede empezar otra (criterio 5). Confirmado (sección 3.5; usuaria, P43). Reemplaza la regla de un único recordatorio por solicitud (R-18). Que "una misma validación" sea una misma consulta de disponibilidad, sea la que sigue a la prevalidación o la de volver a validar: Inferido (lectura directa de la sección 3.5; no bloquea). Que volver a validar se habilite a las 48 horas del aviso de la espera, aunque el recordatorio salga más tarde por la franja nocturna: Confirmado (propuesta aprobada, ADR 0011).
+- **Estado:** Confirmado (criterio 12: qué cuenta como "una misma validación", Inferido)
 
 ### HU-016: Consultar las citas y el código de entrega
 - **Historia:** Como usuario, quiero consultar mis citas y su código de entrega cuando lo necesite, para no tener que guardarlo al agendar.
@@ -241,7 +246,7 @@ Convención: "el usuario" es cualquier persona que usa la web o el bot en nombre
   13. Dado que el usuario pide el código de revocación con cualquier cédula, cuando el sistema responde, entonces muestra el mismo mensaje de HU-002 (criterio 6), exista o no la cédula en la EPS simulada (sección 3.2).
   14. Dado una revocación completada desde un canal sin vinculación o con la vinculación vencida, cuando termina, entonces ese canal no queda vinculado a ningún paciente: la revocación no crea ninguna vinculación (sección 3.2).
   15. Dado una revocación, cuando se registra, entonces es la única excepción a "si la persona no acepta, no se registra nada": se guarda la prueba de la revocación del criterio 5 aunque no se haya aceptado el aviso en ese momento (sección 3.2).
-  16. Dado el flujo de revocación en la web o en el bot, cuando el usuario revoca, entonces el sistema le pide declarar si es el titular o un tercero que actúa con su autorización; sin esa declaración la revocación no se completa, y lo declarado queda en la prueba de la revocación (criterio 5). Esta declaración no es una aceptación del aviso de privacidad (criterio 12). Confirmado (usuaria, R-01; sección 3.2). En qué paso del flujo se pide (antes o después de la cédula y del código) lo define el diseño: Inferido que no cambia ninguna regla.
+  16. Dado el flujo de revocación en la web o en el bot, cuando el usuario revoca, entonces el sistema le pide escoger entre "Soy el titular" y "Actúo con su autorización"; sin esa declaración la revocación no se completa, y lo declarado queda en la prueba de la revocación (criterio 5). Esta declaración no es una aceptación del aviso de privacidad (criterio 12). Confirmado (sección 3.2; usuaria, R-01). En qué paso del flujo se pide (antes o después de la cédula y del código) lo define el diseño: Inferido que no cambia ninguna regla.
 - **Estado:** Confirmado (sección 3.2; criterio 16 respuesta de la usuaria)
 
 ### Notificaciones
@@ -284,8 +289,8 @@ Convención: "el usuario" es cualquier persona que usa la web o el bot en nombre
   8. Dado que lo que cambió es la afiliación, cuando se reverifica, entonces quedan no aptas todas las fórmulas de la solicitud y se aplican los criterios 5 y 6.
   9. Dado cualquier cambio detectado, cuando se notifica, entonces el mensaje indica el motivo, si la cita se mantiene y el siguiente paso, sin nombrar medicamentos ni diagnósticos; el detalle se consulta en la web o en Telegram.
   10. Dado un recordatorio por cualquier medio, cuando el usuario quiere cancelar, entonces lo hace dentro del flujo autenticado de la web o del bot (P11).
-  11. Dado que el recordatorio no salió dentro de los 10 minutos siguientes a la hora programada, cuando la cita aún no ha empezado, entonces se envía y se reverifica igual; cuando la cita ya empezó, se omite. En ambos casos queda registrado como incumplimiento del plazo de 10 minutos, sin cédulas, diagnósticos ni medicamentos. Confirmado (usuaria, R-02). Que al omitirlo tampoco se reverifique: Inferido de la sección 3.6 (la reverificación ocurre al enviar el recordatorio).
-- **Estado:** Confirmado (sección 3.6; criterio 11 respuesta de la usuaria, con una parte Inferida)
+  11. Dado que el recordatorio no salió dentro de los 10 minutos siguientes a la hora programada, cuando la cita aún no ha empezado, entonces se envía y se reverifica igual; cuando la cita ya empezó, se omite. En ambos casos queda registrado como incumplimiento del plazo de 10 minutos, sin cédulas, diagnósticos ni medicamentos. Confirmado (sección 3.6; usuaria, R-02). Al omitirlo tampoco se reverifica, porque la reverificación ocurre al enviar el recordatorio. Confirmado (propuesta aprobada, ADR 0011).
+- **Estado:** Confirmado
 
 ### HU-023: Recibir el aviso de nueva prevalidación para crónicos
 - **Historia:** Como usuario con un tratamiento crónico, quiero un aviso antes de la siguiente fecha habilitada, para iniciar a tiempo una nueva prevalidación.
@@ -368,8 +373,8 @@ Convención: "el usuario" es cualquier persona que usa la web o el bot en nombre
   5. Dado una ventana con citas reservadas, cuando el administrador intenta fijar una capacidad menor que esas citas, entonces el panel no lo permite, informa el mínimo posible y no cancela ninguna cita.
   6. Dado una ventana con citas activas, cuando el administrador intenta quitarla, entonces el panel no lo permite, la señala como ventana con citas activas y ninguna cita se cancela; la misma regla aplica a la petición directa a la API (sección 3.12).
   7. Dado cualquier punto, cuando el administrador agrega ventanas, entonces se permite siempre (sección 3.12).
-  8. Qué citas cuentan como reservadas o activas: Inferido, las confirmadas que no se han cancelado, no han expirado y no se han atendido.
-- **Estado:** Confirmado (criterio 8 Inferido)
+  8. Qué citas cuentan como reservadas o activas: las confirmadas que no se han cancelado, no han expirado y no se han atendido. Confirmado (propuesta aprobada, ADR 0005).
+- **Estado:** Confirmado
 
 ### HU-030: Configurar el inventario simulado por punto
 - **Historia:** Como administrador, quiero ajustar las existencias por medicamento y por punto, para simular la disponibilidad.
@@ -378,8 +383,8 @@ Convención: "el usuario" es cualquier persona que usa la web o el bot en nombre
   1. Dado un punto, cuando cambia las existencias de un medicamento, entonces la disponibilidad que ve el paciente refleja el cambio.
   2. Dado un medicamento en un punto, cuando el administrador lo consulta en el panel, entonces ve cuántas unidades están reservadas.
   3. Dado un medicamento con unidades reservadas, cuando el administrador intenta fijar existencias menores que lo reservado, entonces el panel no lo permite, informa el mínimo posible y no cancela ninguna cita.
-  4. Qué unidades cuentan como reservadas: Inferido, las de citas confirmadas que no se han cancelado, no han expirado y no se han entregado.
-- **Estado:** Confirmado (criterio 4 Inferido)
+  4. Qué unidades cuentan como reservadas: las de citas confirmadas que no se han cancelado, no han expirado y no se han entregado. Confirmado (propuesta aprobada, ADR 0005).
+- **Estado:** Confirmado
 
 ### HU-031: Configurar el catálogo de diagnósticos crónicos
 - **Historia:** Como administrador, quiero mantener el catálogo de diagnósticos crónicos, para que la clasificación de tratamientos sea correcta.
@@ -411,7 +416,7 @@ Convención: "el usuario" es cualquier persona que usa la web o el bot en nombre
   9. Dado cualquiera de estas acciones, cuando se completa, entonces queda en el registro de auditoría (HU-034).
   10. Dado una cuenta de dispensador sin contraseña definida, con su enlace vencido sin usarse o todavía vigente, cuando el administrador envía uno nuevo, entonces el dispensador lo recibe por correo con las mismas reglas (un solo uso, 48 horas) y el enlace anterior queda anulado. La sección 3.12 prevé el reenvío al vencer; la usuaria aprobó permitirlo también antes de vencer. Confirmado (usuaria, P38; propuesta del ADR 0019 aprobada).
   11. Dado una cuenta que ya definió su contraseña, cuando el administrador intenta enviar un enlace de definición, entonces no se ofrece y la petición directa a la API se rechaza. Confirmado (usuaria, P38: "mientras la cuenta no tenga contraseña definida", ADR 0019).
-- **Estado:** Confirmado (criterio 5 en lo que toca a sesiones abiertas es Inferido de "denegar por defecto", sección 3.13; que la reactivación conserve la contraseña anterior es Inferido)
+- **Estado:** Confirmado. El rechazo de las sesiones abiertas al desactivar (criterio 5) y que la reactivación conserve la contraseña anterior (criterio 6) son propuestas aprobadas del ADR 0014.
 
 ### HU-034: Registrar en auditoría las acciones de los paneles
 - **Historia:** Como responsable del proyecto, quiero que las acciones de administradores y dispensadores queden registradas, para saber quién hizo qué y cuándo.
@@ -420,8 +425,8 @@ Convención: "el usuario" es cualquier persona que usa la web o el bot en nombre
   1. Dado una acción de un dispensador o un administrador, cuando se completa, entonces queda en el registro de auditoría con quién, qué y cuándo.
   2. Dado el registro de auditoría, cuando se revisa, entonces no contiene cédulas, diagnósticos ni nombres de medicamentos.
   3. Dado el panel de administración, cuando el administrador abre la pantalla de auditoría, entonces consulta las acciones registradas con quién, qué y cuándo. Confirmado (usuaria, P18).
-  4. Dado una sesión de dispensador o un canal de paciente, cuando pide la auditoría, entonces se rechaza. Inferido de la sección 3.13 (mínimo privilegio).
-- **Estado:** Confirmado (criterio 4 Inferido)
+  4. Dado una sesión de dispensador o un canal de paciente, cuando pide la auditoría, entonces se rechaza. Confirmado (sección 3.13, mínimo privilegio; propuesta aprobada, ADR 0016).
+- **Estado:** Confirmado
 
 ### Solicitudes
 
@@ -434,8 +439,8 @@ Convención: "el usuario" es cualquier persona que usa la web o el bot en nombre
   3. Dado una solicitud, cuando alguna de sus fórmulas sigue en carga, prevalidación, agenda o con cita activa, entonces cuenta como abierta.
   4. Dado una solicitud en la que cada fórmula quedó entregada, no apta, cancelada o perdida, cuando el usuario inicia una nueva, entonces esa solicitud ya no cuenta como abierta.
   5. El límite es por paciente, no por canal: aplica igual aunque el paciente esté vinculado a varios navegadores y chats. Inferido.
-  6. Dado una solicitud que el usuario canceló (HU-037) o cuyas fórmulas se cerraron por inactividad (HU-038), cuando el usuario inicia una nueva, entonces esa solicitud ya no cuenta como abierta. Confirmado (usuaria, R-05). Que esas fórmulas cuenten como "canceladas" entre los estados de cierre de la sección 3.5: Inferido.
-- **Estado:** Confirmado (criterio 5 Inferido; criterio 6 en parte Inferido)
+  6. Dado una solicitud que el usuario canceló (HU-037) o cuyas fórmulas se cancelaron por inactividad (HU-038), cuando el usuario inicia una nueva, entonces esa solicitud ya no cuenta como abierta: esas fórmulas quedan "canceladas", uno de los estados de cierre de la sección 3.5. Confirmado (sección 3.5; propuesta aprobada, ADR 0011).
+- **Estado:** Confirmado (criterio 5 Inferido)
 
 ### Recuperación de contraseña del personal
 
@@ -459,33 +464,34 @@ Convención: "el usuario" es cualquier persona que usa la web o el bot en nombre
 - **Historia:** Como usuario, quiero cancelar una solicitud en cualquier momento, para liberar lo reservado y no ocupar una de las 2 solicitudes abiertas.
 - **Fuente:** sección 3.5 del contexto y respuesta de la usuaria (R-05)
 - **Criterios de aceptación:**
-  1. Dado una solicitud abierta, cuando el usuario la cancela por la web o por Telegram, con una vinculación vigente, entonces sus fórmulas que no estaban cerradas quedan canceladas y la solicitud deja de contar como abierta. Confirmado (usuaria, R-05).
-  2. Dado una solicitud con citas activas, cuando se cancela, entonces sus citas se cancelan, se liberan sus existencias y su cupo y sus códigos de entrega dejan de ser válidos, con las reglas de HU-017. Inferido (una cita no puede seguir activa en una solicitud cancelada).
+  1. Dado una solicitud abierta, cuando el usuario la cancela por la web o por Telegram, con una vinculación vigente, en cualquier momento (en carga, en prevalidación, esperando las 48 horas, con fórmulas aptas sin cita o con citas activas), entonces sus fórmulas que no estaban cerradas quedan canceladas y la solicitud deja de contar como abierta. Confirmado (sección 3.5; usuaria, R-05).
+  2. Dado una solicitud con citas activas, cuando se cancela, entonces sus citas se cancelan, se liberan sus existencias y su cupo y sus códigos de entrega dejan de ser válidos, con las reglas de HU-017. Confirmado (propuesta aprobada, ADR 0011).
   3. Dado una fórmula de la que el paciente ya recibió una parte, cuando se cancela la solicitud, entonces lo no recogido se pierde y la fórmula se cierra (sección 3.5).
-  4. Dado una cita cancelada por cancelar la solicitud, cuando ocurre, entonces se notifica su cancelación por los medios del paciente, como cualquier cancelación (HU-020, P12). Inferido.
-  5. Dado una solicitud cancelada, cuando llega la hora de sus recordatorios programados (incluido el de 48 horas), entonces no se envían. Inferido.
+  4. Dado una cita cancelada por cancelar la solicitud, cuando ocurre, entonces se notifica su cancelación por los medios del paciente, como cualquier cancelación de cita (HU-020, P12). Inferido. La cancelación de la solicitud en sí no lleva una notificación aparte: Inferido (la usuaria decidió no avisar del cierre por inactividad; el contexto no pide avisar de la cancelación de solicitudes).
+  5. Dado una solicitud cancelada, cuando llega la hora de sus recordatorios programados (incluidos los de 48 horas), entonces no se envían. Confirmado (propuesta aprobada, ADR 0011).
   6. Dado una solicitud cancelada, cuando el usuario quiere continuar, entonces no puede reabrirla: debe iniciar una nueva solicitud. Inferido de la sección 3.5 (no hay reprogramación).
   7. Dado un canal sin vinculación vigente o vinculado a otro paciente, cuando pide cancelar la solicitud, incluso directamente por la API, entonces se rechaza sin cambios (sección 3.13).
-- **Estado:** Confirmado (criterio 1); criterios 2, 4, 5 y 6 Inferidos
+  8. Dado que el usuario pide cancelar la solicitud, cuando la web o el bot se lo muestran, entonces piden confirmar la cancelación e indican cuántas citas activas se cancelarán, sin nombrar medicamentos ni diagnósticos en el bot ni en la notificación. Inferido (la cancelación es irreversible, criterio 6).
+- **Estado:** Confirmado (criterios 1, 2, 3, 5 y 7); criterios 4, 6 y 8 Inferidos
 
 ### HU-038: Cierre automático de solicitudes y fórmulas abandonadas
 - **Historia:** Como usuario, quiero que una solicitud o una fórmula abandonada se cierre sola, para no quedar bloqueado por el límite de 2 solicitudes abiertas.
 - **Fuente:** sección 3.5 del contexto y respuesta de la usuaria (R-05)
 - **Criterios de aceptación:**
-  1. Dado una solicitud con fórmulas en carga o prevalidación, cuando pasan 24 horas sin actividad de carga o de prevalidación en ella, entonces esas fórmulas se cierran. Confirmado (usuaria, R-05). Qué cuenta como actividad (cargar o recargar un documento, o pedir la prevalidación, en esa solicitud): Inferido.
-  2. Dado una fórmula apta sin cita, cuando pasan 24 horas desde su prevalidación sin que se confirme una cita, entonces se cierra. Confirmado (usuaria, R-05). Que, si el usuario vuelve a validar (HU-015), el plazo se cuente desde esa nueva prevalidación: Inferido.
-  3. Dado una fórmula que quedó sin disponibilidad (HU-015), cuando pasan 24 horas desde el envío del recordatorio de 48 horas sin que el usuario vuelva a validar ni confirme una cita, entonces se cierra; durante la espera de 48 horas no aplica el criterio 2. Confirmado (usuaria, R-05).
-  4. Dado una fórmula con cita activa, cuando se evalúa el cierre automático, entonces no se cierra ni se cancela su cita: el cierre automático nunca cancela citas. Confirmado (la usuaria solo definió el cierre para carga, prevalidación y fórmulas aptas sin cita).
-  5. Dado una fórmula cerrada por inactividad, cuando se consulta en la web o en Telegram, entonces aparece cerrada y cuenta como "cancelada" para el cierre de la solicitud (sección 3.5). Inferido.
-  6. Dado un cierre automático, cuando ocurre, entonces no se envía notificación. Inferido; Pendiente de la usuaria (P42).
-- **Estado:** Confirmado (criterios 1 a 4); criterios 5 y 6 Inferidos
+  1. Dado una solicitud con fórmulas en carga o prevalidación, cuando pasan 24 horas sin actividad de carga o de prevalidación en ella, entonces esas fórmulas se cancelan. Confirmado (sección 3.5; usuaria, R-05). Cuenta como actividad crear la solicitud, pedir una carga, completar una carga y pedir la prevalidación; cada actividad reinicia el plazo. Confirmado (propuesta aprobada, ADR 0011).
+  2. Dado una fórmula apta sin cita, cuando pasan 24 horas desde su prevalidación sin que se confirme una cita, entonces se cancela. Confirmado (sección 3.5). Que, si el usuario vuelve a validar (HU-015), el plazo se cuente desde esa nueva prevalidación: Inferido.
+  3. Dado una fórmula que quedó sin disponibilidad (HU-015), cuando pasan 24 horas desde el envío del recordatorio de 48 horas de su espera sin que el usuario vuelva a validar ni confirme una cita, entonces se cancela; durante la espera de 48 horas no aplica el criterio 2. Si al volver a validar otra vez no hay disponibilidad, el plazo pasa a contarse desde el recordatorio de la espera nueva; las fórmulas que esperan desde una misma validación se cancelan con el mismo plazo (HU-015, criterios 10 y 12). Confirmado (sección 3.5; usuaria, P43).
+  4. Dado una fórmula con cita activa, cuando se evalúa el cierre automático, entonces no se cierra ni se cancela su cita: el cierre automático nunca cancela citas. Confirmado (sección 3.5: el cierre por inactividad solo aplica a carga, prevalidación y fórmulas aptas sin cita).
+  5. Dado una fórmula cancelada por inactividad, cuando se consulta en la web o en Telegram, entonces aparece cancelada y cuenta como "cancelada" para el cierre de la solicitud. Si con eso todas las fórmulas de la solicitud quedan cerradas, la solicitud se cierra y deja de contar en el límite de 2. Confirmado (sección 3.5: "se cancelan por inactividad"; propuesta aprobada, ADR 0011).
+  6. Dado una cancelación por inactividad de una solicitud o de una fórmula, cuando ocurre, entonces no se envía ninguna notificación al paciente por ningún medio. Confirmado (usuaria, decisión 2 del 2026-11-01). Cierra P42.
+- **Estado:** Confirmado (criterio 2 en parte Inferido)
 
 ## Requisitos no funcionales
 | ID | Requisito | Cómo se verifica | Fuente |
 | --- | --- | --- | --- |
 | RNF-001 | Ninguna notificación ni enlace incluye nombres de medicamentos ni diagnósticos; los enlaces al bot no llevan cédula ni otros datos sensibles (invariante 1) | Revisar el texto de cada mensaje enviado por web, Telegram, SMS y correo en el modo de prueba, y cada enlace al bot | Secciones 3.1 y 3.6 |
 | RNF-002 | Cero sobre-reservas: ninguna cita sin medicamentos reservados ni ventana por encima de su capacidad; las citas de una misma fórmula se confirman todas o ninguna; el panel de administración no permite bajar inventario ni capacidad por debajo de lo reservado (invariante 2) | Prueba de dos confirmaciones simultáneas sobre el último cupo; prueba de fallo en una de las citas de una fórmula; intento de bajar inventario o capacidad por debajo de lo reservado y comprobación de que se rechaza sin cancelar citas | Secciones 3.5 y 3.12 |
-| RNF-003 | No se registra nada antes de aceptar el tratamiento de datos, con la única excepción de la revocación, que se registra sin aceptar el aviso; la autorización de datos de salud se pide antes de cargar cualquier documento (invariante 3, precisado por la sección 3.2 de la versión 6) | Rechazar el aviso y comprobar que no quedó ningún dato; revocar sin aceptar el aviso y comprobar que solo queda la prueba de la revocación ligada a la huella de la cédula; intentar cargar sin autorización y comprobar que se rechaza | Sección 3.2 |
+| RNF-003 | No se registra nada antes de aceptar el tratamiento de datos, con la única excepción de la revocación, que se registra sin aceptar el aviso; la autorización de datos de salud se pide antes de cargar cualquier documento (invariante 3, precisado por la sección 3.2 del contexto vigente, versión 7) | Rechazar el aviso y comprobar que no quedó ningún dato; revocar sin aceptar el aviso y comprobar que solo queda la prueba de la revocación ligada a la huella de la cédula; intentar cargar sin autorización y comprobar que se rechaza | Sección 3.2 |
 | RNF-004 | Los identificadores de Telegram no prueban identidad; solo la cédula y el código de un solo uso la verifican (invariante 4) | Desde un chat nuevo con el mismo nombre visible o usuario, intentar consultar datos de un paciente y comprobar que se pide verificación | Secciones 3.1 y 3.2 |
 | RNF-005 | Cada fórmula es todo o nada y todo resultado de prevalidación se presenta como preliminar (invariante 5) | Fórmula con un medicamento no autorizado queda no apta completa; cada pantalla o mensaje de resultado incluye el aviso | Sección 3.4 |
 | RNF-006 | Nunca se usan datos reales de pacientes; las pruebas usan datos ficticios y los contactos propios de la responsable del proyecto (invariante 6) | Revisión de los datos simulados y de los contactos de prueba | Secciones 3.2, 3.8 y 3.10 |
@@ -502,7 +508,7 @@ Convención: "el usuario" es cualquier persona que usa la web o el bot en nombre
 | RNF-017 | Ventanas, citas y recordatorios se calculan en la zona horaria America/Bogota | Agendar y recibir recordatorios con el servidor en otra zona horaria y comprobar las horas | `CLAUDE.md` (convenciones) |
 | RNF-018 | Textos visibles en español de Colombia en web, bot, paneles y mensajes | Revisión de las pantallas y mensajes | Sección 1 |
 | RNF-019 | El bot de Telegram solo escribe a personas que lo iniciaron | Un chat que no ha iniciado el bot no recibe mensajes | Sección 3.1 |
-| RNF-020 | Los recordatorios se envían en sus franjas: entre 19:00 y 21:00 del día anterior, y dos horas antes de la cita con un desfase máximo de 10 minutos después de la hora programada. Si el de dos horas se retrasa más de 10 minutos, se envía (con reverificación) si la cita no ha empezado y se omite si ya empezó; ambos casos se registran como incumplimiento. El recordatorio de 48 horas sale entre las 48 horas y 1 hora después, nunca antes, y a las 7:00 si la marca cae entre las 21:00 y las 7:00. El aviso a crónicos sale en el despacho diario de las 19:00 del día que está 2 días antes de la fecha habilitada (respuestas de la usuaria) | Citas de prueba con horas conocidas; registrar la hora de envío de cada recordatorio; simular retrasos del envío de dos horas y revisar el registro de incumplimientos | Secciones 3.5 y 3.6, `CLAUDE.md` (stack) y respuestas de la usuaria (R-02) |
+| RNF-020 | Los recordatorios se envían en sus franjas: entre 19:00 y 21:00 del día anterior, y dos horas antes de la cita con un desfase máximo de 10 minutos después de la hora programada. Si el de dos horas se retrasa más de 10 minutos, se envía (con reverificación) si la cita no ha empezado y se omite si ya empezó; ambos casos se registran como incumplimiento. El recordatorio de 48 horas, uno solo por cada espera (las fórmulas que quedan esperando en una misma validación comparten uno; una espera nueva tras volver a validar tiene el suyo), sale entre las 48 horas y 1 hora después, nunca antes, y a las 7:00 si la marca cae entre las 21:00 y las 7:00 (con la hora de tolerancia contada desde las 7:00); si sale más de 1 hora tarde por una falla, se envía igual y se registra como incumplimiento. El aviso a crónicos sale en el despacho diario de las 19:00 del día que está 2 días antes de la fecha habilitada. Los registros de incumplimiento no llevan cédulas, diagnósticos ni medicamentos | Citas de prueba con horas conocidas; registrar la hora de envío de cada recordatorio; simular retrasos del envío de dos horas y del de 48 horas y revisar el registro de incumplimientos; volver a validar sin disponibilidad y comprobar que la espera nueva recibe su propio recordatorio | Secciones 3.5 (versión 7) y 3.6, `CLAUDE.md` (stack) y respuestas de la usuaria (R-02, decisión 1 del 2026-11-01 y P43, que reemplaza R-18) |
 | RNF-021 | Accesibilidad adecuada para adultos mayores y personas con barreras digitales: la web del paciente y los paneles del dispensador y de administración toman WCAG 2.1 nivel AA como referencia voluntaria (no como obligación legal) | Revisión de las pantallas de la web del paciente y de ambos paneles contra los criterios de nivel A y AA de WCAG 2.1: uso solo con teclado, textos alternativos, contraste, etiquetas de formularios y mensajes de error | Secciones 2.1 y 3.1 |
 | RNF-022 | Rendimiento de la web del paciente y de los paneles del dispensador y de administración, medido con conexión 4G lenta simulada: en el 75 % de las visitas, la pantalla principal carga en 2,5 segundos o menos, la respuesta a una interacción toma 200 milisegundos o menos y el contenido no salta (CLS de 0,1 o menos), umbrales "bueno" de Core Web Vitals de Google. El JavaScript inicial de la web pesa máximo 200 KB comprimido | Método aprobado (P40, propuesta del ADR 0020): en la vista previa publicada, con perfil móvil y 4G lenta simulada, 10 mediciones de laboratorio de la pantalla principal de cada experiencia; cumple si al menos 8 de 10 pasan carga de 2,5 s o menos y CLS de 0,1 o menos; la interacción, que no se mide en laboratorio, se sustituye por un tiempo total de bloqueo (TBT) de 200 ms o menos más una prueba automatizada que mide la respuesta a la acción principal con CPU y red limitadas. El límite de 200 KB aplica al JavaScript inicial de cada experiencia (paciente, dispensador y administrador) | Sección 3.15 y respuesta de la usuaria (P40) |
 | RNF-023 | Salud Total y Sanitas siguen las mismas reglas; la EPS es un dato del paciente | Repetir los casos de prevalidación con pacientes de ambas EPS | Sección 3.8 |
@@ -518,15 +524,17 @@ Convención: "el usuario" es cualquier persona que usa la web o el bot en nombre
 | RNF-033 | Formato de los códigos: el código de un solo uso (verificación y revocación) tiene 6 dígitos; el código de entrega tiene un QR y un código numérico de 8 dígitos. El panel del dispensador lee el QR con la cámara del navegador y ofrece un campo numérico que también sirve con un lector físico USB | Pedir códigos de un solo uso y contar sus dígitos; consultar citas y contar los dígitos del código de entrega; validar en el panel con la cámara, con el teclado y con un lector USB | Secciones 3.2 y 3.5 y respuesta de la usuaria (R-10) |
 | RNF-034 | Todo SMS empieza por "Pharma Express:", no lleva tildes y tiene máximo 160 caracteres | Revisar en el modo de prueba el texto de cada tipo de SMS (código, notificaciones, recordatorios, confirmación de revocación) | Sección 3.6 y respuesta de la usuaria |
 | RNF-035 | Las contraseñas de dispensadores y administradores tienen mínimo 15 caracteres, sin reglas de composición (no se exigen mayúsculas, números ni símbolos), y se rechazan las contraseñas filtradas o comunes; aplica al definirla con el enlace y al recuperarla | Intentar contraseñas de 14 caracteres, comunes o filtradas y comprobar el rechazo; usar una de 15 caracteres solo con minúsculas, no común, y comprobar que se acepta | Secciones 3.12 y 3.13 (4) y respuesta de la usuaria (R-10) |
+| RNF-036 | Presupuesto de US$0: el prototipo solo usa servicios gratuitos o cuentas de estudiante sin tarjeta. La configuración externa (cuentas, dominios, teléfono Android para SMS, plan de SMS) la hace la usuaria antes de publicar; mientras tanto, todo se construye y se prueba en modo `capture` o con datos simulados, y ninguna funcionalidad queda bloqueada por esa configuración | Revisar que ningún servicio usado exige tarjeta ni pago; ejecutar las pruebas de cada funcionalidad en modo `capture` sin cuentas externas | Sección 3.9 y decisión 11 de la usuaria (2026-11-01) |
+| RNF-037 | El texto de la autorización de datos de salud informa que los documentos se procesan con Microsoft Azure en Estados Unidos, en la web y en el bot | Leer el texto de la autorización en la web y en el bot antes de cargar un documento | Sección 3.2 y decisión de la usuaria sobre el ADR 0012 |
 
 ## Trazabilidad
 | Historia | Funcionalidades |
 | --- | --- |
-| HU-001 | F001, F002, F014, F092, F093 |
+| HU-001 | F001, F002, F003, F004, F014, F092, F093 |
 | HU-002 | F003, F004 |
 | HU-003 | F005, F006 |
-| HU-004 | F009, F010, F013, F014, F042, F067, F068 |
-| HU-005 | F011, F012 |
+| HU-004 | F009, F010, F013, F014, F035, F036, F042, F067, F068 |
+| HU-005 | F011, F012, F035, F036 |
 | HU-006 | F015, F016 |
 | HU-007 | F015, F016, F019 |
 | HU-008 | F017, F018 |
@@ -557,14 +565,22 @@ Convención: "el usuario" es cualquier persona que usa la web o el bot en nombre
 | HU-033 | F071, F072, F078, F079, F084 |
 | HU-034 | F056, F065, F057, F075 |
 | HU-035 | F069, F070, F094, F095, F098, F099 |
-| HU-036 | F082, F083 |
+| HU-036 | F072, F082, F083 |
 | HU-037 | F094, F095, F066 |
 | HU-038 | F098 |
 
-Funcionalidades transversales sin historia propia, ligadas a RNF: F007 (RNF-013, webhook), F008 (RNF-012), F049 (RNF-013, tareas programadas), F057 (RNF-015), F076 (RNF-021, accesibilidad de la web y de los paneles), F088 (RNF-022, rendimiento de la web y de los paneles), F089 (RNF-030, prevalidación con OCR en la web), F090 (RNF-030 y RNF-031, bot y prevalidación con OCR en Telegram), F091 (RNF-029, tiempos de la API). RNF-027 se verifica en F019; RNF-010 en F005, F006, F019, F050, F058, F082, F083, F092 y F093; RNF-028 en F040, F041, F092, F093 y F100; RNF-032 en F003, F004, F092 y F093; RNF-003 y RNF-007 (excepción de la revocación) en F092 y F093; RNF-020 en F044, F045, F047 y F048; RNF-033 en F003, F004, F035, F036 y F053; RNF-034 en F003, F004 y F043; RNF-035 en F078, F082 y F083.
+Funcionalidades transversales sin historia propia, ligadas a RNF: F007 (RNF-013, webhook), F008 (RNF-012), F049 (RNF-013, tareas programadas), F057 (RNF-015), F076 (RNF-021, accesibilidad de la web y de los paneles), F088 (RNF-022, rendimiento de la web y de los paneles), F089 (RNF-030, prevalidación con OCR en la web), F090 (RNF-030 y RNF-031, bot y prevalidación con OCR en Telegram), F091 (RNF-029, tiempos de la API). RNF-027 se verifica en F019; RNF-010 en F005, F006, F019, F050, F058, F082, F083, F092 y F093; RNF-028 en F040, F041, F092, F093 y F100; RNF-032 en F003, F004, F092 y F093; RNF-003 y RNF-007 (excepción de la revocación) en F092 y F093; RNF-020 en F044, F045, F047 y F048; RNF-033 en F003, F004, F035, F036 y F053; RNF-034 en F003, F004 y F043; RNF-035 en F078, F082 y F083; RNF-036 en todas, porque cada una se prueba en modo `capture` o con datos simulados; RNF-037 en F015 y F016.
 
-### Orden de construcción y dependencias (R-07)
-Las prioridades se ajustaron para que ninguna funcionalidad dependa, para aprobarse, de otra de prioridad posterior. Las verificaciones que necesitan el panel del dispensador o el de administración se movieron a funcionalidades de esa prioridad o posterior; el paso original indica a dónde se movió. Cambios de prioridad: F069 y F070 (3 → 5), F043, F048 y F055 (6 o 7 → 8). Nuevas funcionalidades que reciben pasos movidos: F099 y F100 (prioridad 8). Ubicar en prioridad 8 funcionalidades que no son del panel de administración, solo para que vayan después del panel del dispensador: Inferido. Dentro de una misma prioridad, la funcionalidad que se cita entre paréntesis en un paso (por ejemplo, "F054") se construye antes.
+### Orden de construcción y dependencias (R-07 y R-27)
+Las prioridades se ajustaron para que ninguna funcionalidad dependa, para aprobarse, de otra de prioridad posterior. Las verificaciones que necesitan el panel del dispensador o el de administración se movieron a funcionalidades de esa prioridad o posterior; el paso original indica a dónde se movió. Cambios de prioridad: F069 y F070 (3 → 5), F043, F048 y F055 (6 o 7 → 8). Nuevas funcionalidades que reciben pasos movidos: F099 y F100 (prioridad 8). F050 y el resto del panel del dispensador (prioridad 7) usan la semilla de dispensadores (RP-01) en lugar de las cuentas que crea F071 (prioridad 8), y la política de contraseña se prueba al definirla en F078 (prioridad 8) y al recuperarla en F082. F040 y F080 (prioridad 5) solo verifican en la base de datos lo que el panel del dispensador comprueba después en F053 y F054 (prioridad 7); F048 pasó a prioridad 8 porque necesita entregar una fórmula en F054. La recuperación de contraseña de una cuenta desactivada se movió de F082 (prioridad 7) a F072 (prioridad 8), porque desactivar una cuenta es del panel de administración. Ubicar en prioridad 8 funcionalidades que no son del panel de administración, solo para que vayan después del panel del dispensador: Inferido. Dentro de una misma prioridad, la funcionalidad que se cita entre paréntesis en un paso (por ejemplo, "F054") se construye antes, salvo cuando el paso dice que algo "se verifica en" esa funcionalidad o que se "detalla" en ella: eso es una remisión hacia una funcionalidad posterior, no una dependencia.
+
+Ajustes de R-27 (vinculación, prioridad 2): en prioridad 2 todavía no existen solicitudes (prioridad 3), citas (prioridad 5) ni rutas de la API con datos de un paciente concreto. Por eso:
+- F011 y F012 (prioridad 2) solo verifican que, al escoger un paciente, el canal muestra su nombre y ningún dato del otro. Que solo se vean las solicitudes, fórmulas y citas del paciente escogido se movió a F035 (web) y F036 (Telegram), de prioridad 5.
+- F013 pasó de prioridad 2 a 3 y usa la autorización de datos de salud del paciente (F015, primera operación sobre un paciente concreto) para probar el rechazo sin vinculación, con la vinculación de otro paciente y con una vinculación vencida. El mismo rechazo en la consulta de citas se movió a F035 (prioridad 5).
+- F014 (prioridad 2) pide desde el chat ajeno las gestiones del paciente, sin nombrar las citas. Pedir las citas desde ese chat se movió a F036 (prioridad 5).
+- Con esto, ninguna funcionalidad de prioridad 2 depende de otra de prioridad mayor.
+
+Ajuste de R-29 (registro de la aceptación, prioridad 1): F001 y F002 verifican que, tras aceptar, se pide la cédula; la comprobación en la base de datos del registro de la aceptación (titular o tercero, fecha de la aceptación, canal y versión del aviso) se movió a F003 (web) y F004 (Telegram), de la misma prioridad, porque la aceptación queda ligada al paciente al verificar la identidad. F001 y F002 se construyen antes que F003 y F004.
 
 ## Requisitos de prueba para la arquitectura
 Lo que las funcionalidades necesitan para probarse en su turno. El product-manager no decide cómo se construye; el architect lo define.
@@ -573,12 +589,9 @@ Lo que las funcionalidades necesitan para probarse en su turno. El product-manag
 | --- | --- | --- | --- |
 | RP-01 | Semilla de dispensadores de prueba: al menos dos cuentas de dispensador activas, con contraseña definida, asignadas a puntos distintos (A y B), con datos ficticios y correos de prueba de la responsable del proyecto, para probar el panel del dispensador (prioridad 7) antes de que el administrador pueda crear cuentas (F071, prioridad 8). En qué entornos existe la semilla lo define el architect | F050, F051, F052, F053, F054, F056, F082 | Confirmado (orden de la usuaria, R-07); detalle de diseño del architect |
 | RP-02 | Mecanismo de datos de prueba para cambiar existencias del inventario simulado sin el panel de administración (prioridad 8) | F033, F042, F096, F097 | Inferido |
-| RP-03 | Mecanismo de prueba de tiempo (hallazgo R-06 del informe de preparación) que permita llevar plazos a 24 horas, 48 horas, 3 meses y similares, y simular el retraso del envío de dos horas | F005, F009, F045, F047, F050, F058, F078, F082, F084, F096, F097, F098 | Pendiente (architect, R-06) |
+| RP-03 | Mecanismo de prueba de tiempo (hallazgo R-06 del informe de preparación) que permita llevar plazos a 24 horas, 48 horas, 3 meses y similares, y simular el retraso del envío de dos horas y del de 48 horas. Los pasos de prueba se refieren a él como "el mecanismo de prueba de tiempo de la arquitectura" | F005, F009, F011, F013, F045, F047, F050, F058, F078, F082, F084, F096, F097, F098 | Confirmado: resuelto por architect en el ADR 0021 (reloj de la aplicación y pruebas de tiempo), que cierra R-06 |
 
 ## Pendientes
-Lo que no se pudo especificar sin una decisión de la usuaria (detalle en las preguntas abiertas de `docs/01-brief.md`). P37 a P40 quedaron resueltas por la usuaria (propuestas de los ADR 0019 y 0020 aprobadas), igual que los hallazgos R-01, R-05, R-07, R-09 y las cifras de R-10.
-- P41: recordatorio de 48 horas cuya marca cae antes de las 21:00 pero cuyo envío pasaría de las 21:00, y tolerancia del envío de las 7:00 (HU-015, criterio 7).
-- P42: si el cierre automático por inactividad se notifica al paciente (HU-038, criterio 6).
-- P43: si, al volver a validar y no haber otra vez disponibilidad, se repite la espera de 48 horas con un nuevo recordatorio (HU-015, criterio 10).
-- P44: si el administrador puede seguir creando puntos o solo editar nombre y horario de los existentes (HU-028, criterio 5).
+Lo que no se pudo especificar sin una decisión de la usuaria (detalle en las preguntas abiertas de `docs/01-brief.md`). P37 a P43 quedaron resueltas por la usuaria (propuestas de los ADR 0011, 0019 y 0020 aprobadas, decisiones del 2026-11-01 y, para P43, la sección 3.5 de la versión 7 del contexto), igual que los hallazgos R-01, R-04, R-05, R-07, R-09, R-10, R-12, R-18 (reemplazado por P43), R-23, R-24, R-25 y R-26.
+- P44: si el administrador puede seguir creando puntos o solo editar nombre y horario de los existentes (HU-028, criterio 5). No bloquea: F060 prueba la creación y, si la usuaria la quita, se borra ese paso.
 - Inferidos que siguen esperando confirmación explícita: ver el último párrafo de las preguntas abiertas de `docs/01-brief.md`.

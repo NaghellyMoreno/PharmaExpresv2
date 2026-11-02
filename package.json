@@ -1,0 +1,17 @@
+{
+  "name": "pharma-express",
+  "private": true,
+  "version": "0.0.0",
+  "packageManager": "pnpm@12.16.1",
+  "engines": { "node": "24.x" },
+  "scripts": {
+    "contract:lint": "redocly lint api/openapi.yaml",
+    "contract:gen": "pnpm --filter @pharma/api-contract gen",
+    "contract:check": "pnpm contract:lint && pnpm contract:gen && git diff --exit-code -- packages/api-contract/src/schema.d.ts",
+    "test": "pnpm -r --if-present test",
+    "build": "pnpm -r --if-present build"
+  },
+  "devDependencies": {
+    "@redocly/cli": "2.72.1"
+  }
+}
