@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { waitUntil } from '@vercel/functions';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { eq, sql } from 'drizzle-orm';
 import type { Request, Response } from 'express';
@@ -8,11 +9,26 @@ import { CLOCK, type Clock } from '../../common/clock';
 import { PG_POOL } from '../../db/db.module';
 import { telegramChats } from '../../db/schema';
 import { type Declarant } from '../identity/consent-cookie.service';
+import { IdentityService } from '../identity/identity.service';
 import { PRIVACY_NOTICE } from '../identity/privacy-notice';
+import { OtpNotifier } from '../notifications/otp-notifier.service';
 import { BOT_TEXTS, CALLBACKS } from './texts';
 import { CAPTURE_BOT_INFO, TELEGRAM_TRANSPORT, type TelegramTransport } from './telegram-transport';
 
 const START_COMMAND = /^\/start(@\w+)?(\s|$)/;
+const CEDULA = /^[0-9]{5,12}$/;
+const CODE = /^[0-9]{6}$/;
+
+/** Lo único que el chat guarda de la conversación: nunca la cédula, el código ni datos de contacto. */
+interface Conversation {
+  step: 'awaiting_cedula' | 'awaiting_code' | 'verified';
+  challengeId?: string;
+  pendingAcceptance: { noticeVersion: string; declarant: Declarant; acceptedAt: string };
+}
+interface ChatRow {
+  id: string;
+  conversation: Conversation;
+}
 
 /** Bot de Telegram por webhook (ADR 0008). F002: aviso de privacidad, aceptar o rechazar. */
 @Injectable()
@@ -25,6 +41,8 @@ export class TelegramService {
     @Inject(PG_POOL) pool: Pool,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(TELEGRAM_TRANSPORT) private readonly transport: TelegramTransport,
+    private readonly identity: IdentityService,
+    private readonly notifier: OtpNotifier,
   ) {
     this.db = drizzle(pool);
   }
@@ -57,16 +75,19 @@ export class TelegramService {
     return this.handler;
   }
 
-  /** Cualquier mensaje: un chat nuevo recibe el aviso; uno que ya aceptó, solo con /start recibe la cédula. */
+  /**
+   * Un chat nuevo recibe el aviso. Uno que ya aceptó atiende el texto según su paso; los mensajes que no son texto
+   * (foto, documento, sticker) no se procesan, no se responden y no se guardan.
+   */
   private async onMessage(ctx: Context): Promise<void> {
     const chatId = ctx.chat?.id;
     if (chatId === undefined) return;
-    if (await this.chatExists(chatId)) {
-      if (START_COMMAND.test(ctx.message?.text ?? '') && (await this.claimUpdate(chatId, ctx.update.update_id))) {
-        await this.send(ctx, BOT_TEXTS.askCedula);
-      }
-      return;
+    const value = ctx.message?.text;
+    if (value !== undefined) {
+      const chat = await this.claimUpdate(chatId, ctx.update.update_id);
+      if (chat) return this.onText(ctx, chat, value);
     }
+    if (await this.chatExists(chatId)) return;
     const keyboard = new InlineKeyboard()
       .text(BOT_TEXTS.acceptHolder, CALLBACKS.acceptHolder)
       .row()
@@ -76,6 +97,43 @@ export class TelegramService {
       .row()
       .text(BOT_TEXTS.revoke, CALLBACKS.revoke);
     await this.send(ctx, BOT_TEXTS.notice, keyboard);
+  }
+
+  /** Atiende un texto de un chat que ya aceptó el aviso, según el paso guardado. */
+  private async onText(ctx: Context, chat: ChatRow, value: string): Promise<void> {
+    if (START_COMMAND.test(value)) {
+      // Vuelve a pedir la cédula sin tocar la aceptación original (y descarta el reto sin consumirlo).
+      await this.db.execute(sql`UPDATE telegram_chats
+        SET conversation = jsonb_build_object('step', 'awaiting_cedula', 'pendingAcceptance', conversation->'pendingAcceptance')
+        WHERE id = ${chat.id}`);
+      return this.send(ctx, BOT_TEXTS.askCedula);
+    }
+    const trimmed = value.trim();
+    if (chat.conversation.step === 'awaiting_code') {
+      if (!CODE.test(trimmed)) return this.send(ctx, BOT_TEXTS.codeIncomplete);
+      return; // La verificación llega en el siguiente commit de F004.
+    }
+    if (chat.conversation.step === 'awaiting_cedula') return this.requestCode(ctx, chat, trimmed);
+  }
+
+  /** Pide el código al servicio de identidad y responde el mensaje aprobado, exista o no la cédula (RNF-032). */
+  private async requestCode(ctx: Context, chat: ChatRow, cedula: string): Promise<void> {
+    if (!CEDULA.test(cedula)) return this.send(ctx, BOT_TEXTS.cedulaInvalid);
+    let delivery;
+    try {
+      const requested = await this.identity.requestCode(cedula);
+      delivery = requested.delivery;
+      await this.db.execute(sql`UPDATE telegram_chats
+        SET conversation = jsonb_build_object('step', 'awaiting_code', 'challengeId', ${requested.challengeId}::text,
+                                              'pendingAcceptance', conversation->'pendingAcceptance')
+        WHERE id = ${chat.id}`);
+    } catch (error) {
+      this.logger.error(`No se pudo pedir el código de verificación (${describeError(error)})`);
+      return this.send(ctx, BOT_TEXTS.codeNotSent);
+    }
+    await this.send(ctx, BOT_TEXTS.codeRequested);
+    // El envío ocurre después de responder (ADR 0008, decisión 3); el notificador nunca lanza.
+    if (delivery) waitUntil(this.notifier.send(delivery));
   }
 
   private async onButton(ctx: Context): Promise<void> {
@@ -125,14 +183,18 @@ export class TelegramService {
     return rows.length > 0;
   }
 
-  /** Descarta la actualización repetida de un chat con fila (ADR 0008, decisión 4). */
-  private async claimUpdate(chatId: number, updateId: number): Promise<boolean> {
+  /**
+   * Toma la actualización: solo la primera vez que llega un `update_id` (ADR 0008, decisión 4). Devuelve la fila del chat,
+   * o nada si es un reintento o el chat no existe. Solo se descarta el mismo `update_id`: dos actualizaciones distintas que
+   * llegan juntas se atienden las dos y las serializa el bloqueo del reto.
+   */
+  private async claimUpdate(chatId: number, updateId: number): Promise<ChatRow | null> {
     const rows = await this.db
       .update(telegramChats)
       .set({ lastUpdateId: updateId, updatedAt: await this.clock.now() })
-      .where(sql`${telegramChats.chatId} = ${chatId} AND (${telegramChats.lastUpdateId} IS NULL OR ${telegramChats.lastUpdateId} < ${updateId})`)
-      .returning({ id: telegramChats.id });
-    return rows.length === 1;
+      .where(sql`${telegramChats.chatId} = ${chatId} AND ${telegramChats.lastUpdateId} IS DISTINCT FROM ${updateId}`)
+      .returning({ id: telegramChats.id, conversation: telegramChats.conversation });
+    return rows.length === 1 ? { id: rows[0].id, conversation: rows[0].conversation as Conversation } : null;
   }
 
   /** Responde solo al chat que escribió (RNF-019). Si Telegram falla, el webhook igual responde 200. */

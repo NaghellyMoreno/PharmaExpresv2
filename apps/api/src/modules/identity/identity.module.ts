@@ -14,5 +14,6 @@ import { IdentityService } from './identity.service';
     ConsentCookieGuard,
     IdentityService,
   ],
+  exports: [IdentityService],
 })
 export class IdentityModule {}

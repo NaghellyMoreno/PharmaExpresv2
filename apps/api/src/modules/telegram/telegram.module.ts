@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { IdentityModule } from '../identity/identity.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { TelegramController } from './telegram.controller';
 import { TelegramService } from './telegram.service';
 import {
@@ -9,6 +11,7 @@ import {
 } from './telegram-transport';
 
 @Module({
+  imports: [IdentityModule, NotificationsModule],
   controllers: [TelegramController],
   providers: [
     TelegramService,

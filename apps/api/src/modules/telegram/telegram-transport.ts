@@ -21,6 +21,8 @@ export interface RecordedCall {
   chatId?: number;
   text?: string;
   replyMarkup?: unknown;
+  /** Claves del cuerpo enviado: permite comprobar que el bot no cita ni repite lo que escribió el usuario. */
+  keys: string[];
 }
 
 /** Modo `capture`: no sale ninguna llamada a Telegram; solo se registran el método y el destino. */
@@ -50,6 +52,7 @@ export class CaptureTelegramTransport implements TelegramTransport {
         chatId: typeof p.chat_id === 'number' ? p.chat_id : undefined,
         text: p.text,
         replyMarkup: p.reply_markup,
+        keys: Object.keys(p),
       });
       if (this.failure?.kind === 'network') {
         throw new HttpError(this.failure.description, new Error(this.failure.description));

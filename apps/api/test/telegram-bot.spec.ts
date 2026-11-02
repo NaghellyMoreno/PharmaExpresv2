@@ -9,6 +9,8 @@ import { PRIVACY_NOTICE } from '../src/modules/identity/privacy-notice';
 import { CaptureTelegramTransport, TELEGRAM_TRANSPORT } from '../src/modules/telegram/telegram-transport';
 import { createTestApp } from './support/app';
 import { countRows } from './support/db';
+import { createSeedPool, loadFixtureAffiliates, resetIdentityData } from './support/identity';
+import { trackSends } from './support/sends';
 
 // F002: bot de Telegram, aviso de privacidad (contracts/F002.md). Las actualizaciones son objetos Update
 // simulados con identificadores ficticios; nunca se llama a Telegram (modo capture).
@@ -392,7 +394,12 @@ describe('bot de Telegram (F002)', () => {
       await post(press(A, 'accept:holder'));
       await post(message(A, { text: 'hola' }));
       await post(message(A, { text: 'mis medicamentos' }));
-      expect(transport.calls.map((c) => [c.method, c.text])).toEqual([['sendMessage', ASK_CEDULA]]);
+      // Con F004 un texto que no es una cédula recibe "Cédula inválida" (contracts/F004.md, 1.4): sigue sin mostrar datos de pacientes.
+      expect(transport.calls.map((c) => [c.method, c.text])).toEqual([
+        ['sendMessage', ASK_CEDULA],
+        ['sendMessage', 'Cédula inválida. Escriba entre 5 y 12 dígitos.'],
+        ['sendMessage', 'Cédula inválida. Escriba entre 5 y 12 dígitos.'],
+      ]);
     });
 
     it('4.9 si Telegram falla al responder la aceptación, la fila queda una vez y el reintento no la duplica', async () => {
@@ -446,18 +453,28 @@ describe('bot de Telegram (F002)', () => {
       expect(transport.calls.filter((c) => (c.text ?? '').includes(ASK_CEDULA))).toEqual([]);
     });
 
-    it('5.3 la cédula escrita por un chat que ya aceptó no se guarda, no genera llamadas y no está en logs', async () => {
-      await post(press(A, 'accept:holder'));
-      const before = (await rowsOf(A))[0];
-      const callsBefore = transport.calls.length;
-      const logs = await captureLogs(async () => {
-        await post(message(A, { text: CEDULA })).expect(200);
-      });
-      expect((await rowsOf(A))[0]).toEqual(before);
-      expect(transport.calls).toHaveLength(callsBefore);
-      expect(transport.calls.every((c) => c.method === 'sendMessage')).toBe(true);
-      expect(logs).not.toContain(CEDULA);
-      expect(JSON.stringify(await rowsOf(A))).not.toContain(CEDULA);
+    // F004 invierte la parte "no se procesa" de este criterio (contracts/F004.md, Alcance): un chat que aceptó y escribe
+    // la cédula ahora recibe el mensaje aprobado y se crea el reto (lo prueban los criterios 1.1 a 1.9 de F004).
+    // Se conserva lo que sigue siendo cierto: la cédula escrita no queda en los logs ni en las filas de telegram_chats.
+    it('5.3 la cédula escrita por un chat que ya aceptó se atiende y no queda en logs ni en las filas del chat', async () => {
+      const seed = createSeedPool();
+      try {
+        await loadFixtureAffiliates(seed);
+        const sends = trackSends(app);
+        await post(press(A, 'accept:holder'));
+        const callsBefore = transport.calls.length;
+        const logs = await captureLogs(async () => {
+          await post(message(A, { text: CEDULA })).expect(200);
+          await sends.flush();
+        });
+        expect(transport.calls.slice(callsBefore).map((c) => c.method)).toEqual(['sendMessage']);
+        expect((await rowsOf(A))[0].conversation.step).toBe('awaiting_code');
+        expect(logs).not.toContain(CEDULA);
+        expect(JSON.stringify(await rowsOf(A))).not.toContain(CEDULA);
+      } finally {
+        await resetIdentityData(seed);
+        await seed.end();
+      }
     });
 
     it('5.4 un chat que aceptó y escribe /start recibe de nuevo la cédula, sin otra fila ni cambio de fecha', async () => {
