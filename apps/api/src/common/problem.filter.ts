@@ -1,6 +1,6 @@
 import { ArgumentsHost, BadRequestException, Catch, ExceptionFilter, HttpException, HttpStatus, UnauthorizedException } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { webhookSecretMatches } from './access';
+import { webhookSecretMatches } from './access.js';
 
 export const TELEGRAM_WEBHOOK_PATH = '/api/v1/telegram/webhook';
 

@@ -1,5 +1,5 @@
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
-import { createDb, createPool } from '../src/db/client';
+import { createDb, createPool } from '../src/db/client.js';
 
 async function main() {
   const pool = createPool(process.env.DATABASE_SEED_URL ?? process.env.DATABASE_URL);

@@ -1,8 +1,8 @@
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { PRIVACY_NOTICE } from '../src/modules/identity/privacy-notice';
-import { createTestApp } from './support/app';
+import { PRIVACY_NOTICE } from '../src/modules/identity/privacy-notice.js';
+import { createTestApp } from './support/app.js';
 
 // F008, criterios 2.1 y 2.2: HSTS, CSP y nosniff en la API, también en respuestas de error y de POST.
 const MIN_HSTS_SECONDS = 15552000; // 180 días (Inferido en el contrato)

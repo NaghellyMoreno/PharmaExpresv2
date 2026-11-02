@@ -2,8 +2,8 @@ import type { LoggerService } from '@nestjs/common';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import type { Pool } from 'pg';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { EMAIL_SENDER, SMS_SENDER } from '../src/modules/notifications/messaging';
-import { createTestApp } from './support/app';
+import { EMAIL_SENDER, SMS_SENDER } from '../src/modules/notifications/messaging.js';
+import { createTestApp } from './support/app.js';
 import {
   AFFILIATED,
   AFFILIATED_NO_EMAIL,
@@ -17,8 +17,8 @@ import {
   resetIdentityData,
   verifyCode,
   type Accepted,
-} from './support/identity';
-import { trackSends } from './support/sends';
+} from './support/identity.js';
+import { trackSends } from './support/sends.js';
 
 // F003, invariante 8: ni los registros (R.1) ni las tablas de `app` (R.2) guardan cédulas, códigos, celulares ni correos.
 

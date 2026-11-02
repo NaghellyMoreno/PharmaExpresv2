@@ -1,6 +1,6 @@
 import { Global, Inject, Module, OnApplicationShutdown } from '@nestjs/common';
 import type { Pool } from 'pg';
-import { createPool } from './client';
+import { createPool } from './client.js';
 
 export const PG_POOL = Symbol('PG_POOL');
 

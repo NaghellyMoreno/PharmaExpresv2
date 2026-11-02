@@ -3,11 +3,11 @@ import path from 'node:path';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { Pool } from 'pg';
 import request from 'supertest';
-import { createPool } from '../../src/db/client';
-import { PRIVACY_NOTICE } from '../../src/modules/identity/privacy-notice';
-import { seedAffiliates } from '../../src/seed/affiliates';
+import { createPool } from '../../src/db/client.js';
+import { PRIVACY_NOTICE } from '../../src/modules/identity/privacy-notice.js';
+import { seedAffiliates } from '../../src/seed/affiliates.js';
 
-export const FIXTURE_AFFILIATES = path.resolve(__dirname, '../../../../data/simulated/affiliates.json');
+export const FIXTURE_AFFILIATES = path.resolve(import.meta.dirname, '../../../../data/simulated/affiliates.json');
 export const ORIGIN = () => process.env.APP_ORIGIN!;
 
 // Datos ficticios del contrato (contracts/F003.md, "Datos de prueba").

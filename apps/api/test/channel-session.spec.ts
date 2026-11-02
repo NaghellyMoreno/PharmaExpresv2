@@ -5,8 +5,8 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import type { Pool } from 'pg';
 import request from 'supertest';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createTestApp } from './support/app';
-import { validateAgainstSchema } from './support/contract';
+import { createTestApp } from './support/app.js';
+import { validateAgainstSchema } from './support/contract.js';
 import {
   AFFILIATED,
   AFFILIATED_NO_EMAIL,
@@ -20,8 +20,8 @@ import {
   setClockOffset,
   verifyCode,
   type Accepted,
-} from './support/identity';
-import { trackSends } from './support/sends';
+} from './support/identity.js';
+import { trackSends } from './support/sends.js';
 
 // F009 (contracts/F009.md): GET /me, el guard de sesión del navegador y el vencimiento a 3 meses.
 // PostgreSQL real; mensajes en modo capture. app.test_clock es global: este archivo corre en serie y deja el reloj en 0.

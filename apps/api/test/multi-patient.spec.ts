@@ -5,7 +5,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import type { Pool } from 'pg';
 import request from 'supertest';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { createTestApp } from './support/app';
+import { createTestApp } from './support/app.js';
 import {
   AFFILIATED,
   AFFILIATED_NO_EMAIL,
@@ -18,8 +18,8 @@ import {
   setClockOffset,
   verifyCode,
   type Accepted,
-} from './support/identity';
-import { trackSends } from './support/sends';
+} from './support/identity.js';
+import { trackSends } from './support/sends.js';
 
 // F011 (contracts/F011.md): un navegador con varios pacientes. Criterios de API: 1.5, 5.1, 5.2 y 5.7.
 // Los criterios 1.1 y 5.6 ya están en channel-session.spec.ts e identity-verification.spec.ts. app.test_clock es global:
@@ -142,7 +142,7 @@ describe('1.5: sin límite de pacientes por navegador', () => {
   });
 
   it('el código de verificación no limita la cantidad de vinculaciones por navegador', () => {
-    const dir = path.resolve(__dirname, '../src/modules/identity');
+    const dir = path.resolve(import.meta.dirname, '../src/modules/identity');
     const source = execFileSync('grep', ['-rn', '-i', '-E', 'channel_bindings|channelBindings|LIMIT', dir], { encoding: 'utf8' });
     const lines = source.split('\n').filter((l) => /LIMIT/.test(l) && /binding/i.test(l));
     expect(lines).toEqual([]);

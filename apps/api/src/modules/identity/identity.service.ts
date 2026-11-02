@@ -2,12 +2,12 @@ import { randomUUID } from 'node:crypto';
 import { HttpException, Inject, Injectable } from '@nestjs/common';
 import type { components } from '@pharma/api-contract';
 import type { Pool, PoolClient } from 'pg';
-import { PG_POOL } from '../../db/db.module';
-import { withTransaction } from '../../db/transaction';
-import type { OtpDelivery } from '../notifications/otp-notifier.service';
-import type { ConsentPayload } from './consent-cookie.service';
-import { EXIT_PATHS, MAX_CODES_PER_HOUR, MIN_SECONDS_BETWEEN_CODES } from './messages';
-import { cedulaFingerprint, generateOtpCode, hashOtpCode, hashToken, newToken, sameHash } from './identity-crypto';
+import { PG_POOL } from '../../db/db.module.js';
+import { withTransaction } from '../../db/transaction.js';
+import type { OtpDelivery } from '../notifications/otp-notifier.service.js';
+import type { ConsentPayload } from './consent-cookie.service.js';
+import { EXIT_PATHS, MAX_CODES_PER_HOUR, MIN_SECONDS_BETWEEN_CODES } from './messages.js';
+import { cedulaFingerprint, generateOtpCode, hashOtpCode, hashToken, newToken, sameHash } from './identity-crypto.js';
 
 type Binding = components['schemas']['Binding'];
 

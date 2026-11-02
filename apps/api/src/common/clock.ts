@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { Pool } from 'pg';
-import { PG_POOL } from '../db/db.module';
+import { PG_POOL } from '../db/db.module.js';
 
 export const CLOCK = Symbol('CLOCK');
 

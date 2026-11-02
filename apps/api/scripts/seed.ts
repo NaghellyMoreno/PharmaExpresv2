@@ -4,10 +4,10 @@
 // y si no data/simulated/affiliates.json.
 import { existsSync } from 'node:fs';
 import path from 'node:path';
-import { createPool } from '../src/db/client';
-import { seedAffiliates } from '../src/seed/affiliates';
+import { createPool } from '../src/db/client.js';
+import { seedAffiliates } from '../src/seed/affiliates.js';
 
-const dir = path.resolve(__dirname, '../../../data/simulated');
+const dir = path.resolve(import.meta.dirname, '../../../data/simulated');
 
 async function main() {
   const flag = process.argv.indexOf('--file');

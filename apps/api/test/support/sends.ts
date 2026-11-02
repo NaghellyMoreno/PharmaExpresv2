@@ -1,5 +1,5 @@
 import type { NestExpressApplication } from '@nestjs/platform-express';
-import { OtpNotifier } from '../../src/modules/notifications/otp-notifier.service';
+import { OtpNotifier } from '../../src/modules/notifications/otp-notifier.service.js';
 
 /**
  * El envío ocurre después de responder. Para que ningún envío pendiente de una prueba caiga en la siguiente,

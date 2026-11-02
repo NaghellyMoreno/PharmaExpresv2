@@ -3,14 +3,14 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import { Pool } from 'pg';
 import request from 'supertest';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Clock } from '../src/common/clock';
-import { createPool } from '../src/db/client';
-import { PRIVACY_NOTICE } from '../src/modules/identity/privacy-notice';
-import { CaptureTelegramTransport, TELEGRAM_TRANSPORT } from '../src/modules/telegram/telegram-transport';
-import { createTestApp } from './support/app';
-import { countRows } from './support/db';
-import { createSeedPool, loadFixtureAffiliates, resetIdentityData } from './support/identity';
-import { trackSends } from './support/sends';
+import type { Clock } from '../src/common/clock.js';
+import { createPool } from '../src/db/client.js';
+import { PRIVACY_NOTICE } from '../src/modules/identity/privacy-notice.js';
+import { CaptureTelegramTransport, TELEGRAM_TRANSPORT } from '../src/modules/telegram/telegram-transport.js';
+import { createTestApp } from './support/app.js';
+import { countRows } from './support/db.js';
+import { createSeedPool, loadFixtureAffiliates, resetIdentityData } from './support/identity.js';
+import { trackSends } from './support/sends.js';
 
 // F002: bot de Telegram, aviso de privacidad (contracts/F002.md). Las actualizaciones son objetos Update
 // simulados con identificadores ficticios; nunca se llama a Telegram (modo capture).

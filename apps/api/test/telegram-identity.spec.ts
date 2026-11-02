@@ -3,10 +3,10 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import type { Pool } from 'pg';
 import request from 'supertest';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { IdentityService } from '../src/modules/identity/identity.service';
-import { PRIVACY_NOTICE } from '../src/modules/identity/privacy-notice';
-import { CaptureTelegramTransport, TELEGRAM_TRANSPORT, type RecordedCall } from '../src/modules/telegram/telegram-transport';
-import { createTestApp } from './support/app';
+import { IdentityService } from '../src/modules/identity/identity.service.js';
+import { PRIVACY_NOTICE } from '../src/modules/identity/privacy-notice.js';
+import { CaptureTelegramTransport, TELEGRAM_TRANSPORT, type RecordedCall } from '../src/modules/telegram/telegram-transport.js';
+import { createTestApp } from './support/app.js';
 import {
   AFFILIATED,
   AFFILIATED_INACTIVE,
@@ -24,9 +24,9 @@ import {
   setClockOffset,
   waitForMessages,
   waitForSms,
-} from './support/identity';
-import { trackSends } from './support/sends';
-import { A, NEW_CHAT, WEBHOOK, logSink, message, nextUpdateId, press, rowDiff, rowMap, text } from './support/telegram';
+} from './support/identity.js';
+import { trackSends } from './support/sends.js';
+import { A, NEW_CHAT, WEBHOOK, logSink, message, nextUpdateId, press, rowDiff, rowMap, text } from './support/telegram.js';
 
 // F004, pasos 1, 2, 6 y 7: la cédula por Telegram y el envío del código (contracts/F004.md).
 // Las cadenas están escritas aquí a propósito: la prueba no las toma del código.

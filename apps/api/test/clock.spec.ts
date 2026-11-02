@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { createPool } from '../src/db/client';
+import { createPool } from '../src/db/client.js';
 
 // Contra PostgreSQL real (ADR 0003 y 0017): reloj de la aplicación (ADR 0021).
 describe('app.clock_now()', () => {

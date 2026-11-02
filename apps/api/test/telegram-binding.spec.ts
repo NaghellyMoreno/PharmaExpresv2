@@ -3,9 +3,9 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import type { Pool } from 'pg';
 import request from 'supertest';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { IdentityService } from '../src/modules/identity/identity.service';
-import { CaptureTelegramTransport, TELEGRAM_TRANSPORT, type RecordedCall } from '../src/modules/telegram/telegram-transport';
-import { createTestApp } from './support/app';
+import { IdentityService } from '../src/modules/identity/identity.service.js';
+import { CaptureTelegramTransport, TELEGRAM_TRANSPORT, type RecordedCall } from '../src/modules/telegram/telegram-transport.js';
+import { createTestApp } from './support/app.js';
 import {
   AFFILIATED,
   AFFILIATED_NO_EMAIL,
@@ -21,9 +21,9 @@ import {
   setClockOffset,
   verifyCode,
   waitForSms,
-} from './support/identity';
-import { trackSends } from './support/sends';
-import { A, B, NEW_CHAT, WEBHOOK, captureLogs, logSink, message, press, rowDiff, rowMap, text } from './support/telegram';
+} from './support/identity.js';
+import { trackSends } from './support/sends.js';
+import { A, B, NEW_CHAT, WEBHOOK, captureLogs, logSink, message, press, rowDiff, rowMap, text } from './support/telegram.js';
 
 // F010 (contracts/F010.md): el chat vinculado, B-03 mínima y el vencimiento a 3 meses visto desde el chat.
 // app.test_clock es global: este archivo corre en serie y lo deja en 0 (T.6). Las cadenas están escritas aquí a propósito.

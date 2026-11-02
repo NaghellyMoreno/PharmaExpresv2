@@ -2,8 +2,8 @@ import { createHash, randomUUID } from 'node:crypto';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import type { Pool } from 'pg';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { createTestApp } from './support/app';
-import { validateAgainstSchema } from './support/contract';
+import { createTestApp } from './support/app.js';
+import { validateAgainstSchema } from './support/contract.js';
 import {
   AFFILIATED,
   AFFILIATED_NO_EMAIL,
@@ -21,8 +21,8 @@ import {
   verifyCode,
   waitForMessages,
   type Accepted,
-} from './support/identity';
-import { trackSends } from './support/sends';
+} from './support/identity.js';
+import { trackSends } from './support/sends.js';
 
 // F003, pasos 4 a 6 y 8 a 9 (verificar el código): contracts/F003.md. PostgreSQL real; mensajes en modo capture.
 

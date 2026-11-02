@@ -1,5 +1,5 @@
 import { Global, Module } from '@nestjs/common';
-import { CLOCK, DbClock } from './clock';
+import { CLOCK, DbClock } from './clock.js';
 
 /** Reloj de la aplicación disponible para todos los módulos (ADR 0021). */
 @Global()

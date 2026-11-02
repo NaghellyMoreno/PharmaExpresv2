@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { createApp } from '../src/app';
+import { createApp } from '../src/app.js';
 
 describe('GET /api/v1/health', () => {
   let app: Awaited<ReturnType<typeof createApp>>;

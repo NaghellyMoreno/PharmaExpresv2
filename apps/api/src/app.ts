@@ -2,8 +2,8 @@ import { BadRequestException, LoggerService, ValidationError, ValidationPipe } f
 import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
-import { AppModule } from './app.module';
-import { ProblemFilter } from './common/problem.filter';
+import { AppModule } from './app.module.js';
+import { ProblemFilter } from './common/problem.filter.js';
 
 export const API_PREFIX = 'api/v1';
 

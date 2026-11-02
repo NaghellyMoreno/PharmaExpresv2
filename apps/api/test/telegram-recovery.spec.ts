@@ -3,9 +3,9 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import type { Pool } from 'pg';
 import request from 'supertest';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { CALLBACKS, EXIT_PATH_CALLBACKS } from '../src/modules/telegram/texts';
-import { CaptureTelegramTransport, TELEGRAM_TRANSPORT, type RecordedCall } from '../src/modules/telegram/telegram-transport';
-import { createTestApp } from './support/app';
+import { CALLBACKS, EXIT_PATH_CALLBACKS } from '../src/modules/telegram/texts.js';
+import { CaptureTelegramTransport, TELEGRAM_TRANSPORT, type RecordedCall } from '../src/modules/telegram/telegram-transport.js';
+import { createTestApp } from './support/app.js';
 import {
   AFFILIATED,
   AFFILIATED_NO_EMAIL,
@@ -25,9 +25,9 @@ import {
   waitForSms,
   type Accepted,
   type CapturedMessage,
-} from './support/identity';
-import { trackSends } from './support/sends';
-import { A, B, NEW_CHAT, WEBHOOK, captureLogs, logSink, message, nextUpdateId, press, rowDiff, rowMap, text } from './support/telegram';
+} from './support/identity.js';
+import { trackSends } from './support/sends.js';
+import { A, B, NEW_CHAT, WEBHOOK, captureLogs, logSink, message, nextUpdateId, press, rowDiff, rowMap, text } from './support/telegram.js';
 
 // F006: vencimiento, bloqueo y límites del código en el bot, con los tres caminos de salida (contracts/F006.md).
 // PostgreSQL real, Telegram, SMS y correo en modo capture. Las cadenas están escritas aquí a propósito: la prueba no las toma del código.

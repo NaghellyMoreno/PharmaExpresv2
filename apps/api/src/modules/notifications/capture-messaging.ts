@@ -1,5 +1,5 @@
 import type { Pool } from 'pg';
-import type { EmailSender, SmsSender } from './messaging';
+import type { EmailSender, SmsSender } from './messaging.js';
 
 /**
  * Modo `capture` (ADR 0009): no sale nada. Cada mensaje queda en `app.captured_messages`, tabla de prueba que la

@@ -1,9 +1,9 @@
 import type { LoggerService } from '@nestjs/common';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { Test } from '@nestjs/testing';
-import { AppModule } from '../../src/app.module';
-import { configureApp } from '../../src/app';
-import { CLOCK, type Clock } from '../../src/common/clock';
+import { AppModule } from '../../src/app.module.js';
+import { configureApp } from '../../src/app.js';
+import { CLOCK, type Clock } from '../../src/common/clock.js';
 
 /** Crea la aplicación de pruebas; `clock` fija la hora de aceptación (ADR 0021). */
 export async function createTestApp(

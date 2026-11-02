@@ -6,7 +6,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import path from 'node:path';
 import EmbeddedPostgres from 'embedded-postgres';
 
-const root = path.resolve(__dirname, '../../..');
+const root = path.resolve(import.meta.dirname, '../../..');
 const dataDir = path.join(root, 'pgdata');
 const pidFile = path.join(root, '.run/local-db.pid');
 const PORT = 5433;
@@ -51,7 +51,7 @@ async function start() {
     return;
   }
   mkdirSync(path.dirname(pidFile), { recursive: true });
-  const child = spawn(process.execPath, [...process.execArgv, __filename, 'serve'], {
+  const child = spawn(process.execPath, [...process.execArgv, import.meta.filename, 'serve'], {
     detached: true,
     stdio: ['ignore', 'pipe', 'ignore'],
   });

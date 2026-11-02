@@ -3,8 +3,8 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import type { Pool } from 'pg';
 import request from 'supertest';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createTestApp } from './support/app';
-import { validateAgainstSchema } from './support/contract';
+import { createTestApp } from './support/app.js';
+import { validateAgainstSchema } from './support/contract.js';
 import {
   AFFILIATED,
   FIXTURE_AFFILIATES,
@@ -23,10 +23,10 @@ import {
   verifyCode,
   waitForSms,
   type Accepted,
-} from './support/identity';
-import { trackSends } from './support/sends';
-import { A, WEBHOOK, captureLogs, logSink, message, press, rowDiff, rowMap, text } from './support/telegram';
-import { CaptureTelegramTransport, TELEGRAM_TRANSPORT } from '../src/modules/telegram/telegram-transport';
+} from './support/identity.js';
+import { trackSends } from './support/sends.js';
+import { A, WEBHOOK, captureLogs, logSink, message, press, rowDiff, rowMap, text } from './support/telegram.js';
+import { CaptureTelegramTransport, TELEGRAM_TRANSPORT } from '../src/modules/telegram/telegram-transport.js';
 
 // F005, pasos 5 a 7 (espera de 2 minutos, anulación del código anterior y máximo de 5 por hora) más transversales y registros.
 // PostgreSQL real; mensajes y Telegram en modo capture. Las cadenas están escritas aquí a propósito.
@@ -210,7 +210,7 @@ describe('paso 6: el código nuevo anula el anterior', () => {
     const res = await verifyCode(app, accepted.cookie, a);
     expect(res.status).toBe(410);
     expect(res.body.code).toBe('code_superseded');
-    expect((res.headers['set-cookie'] as string[] | undefined) ?? []).toEqual([]);
+    expect((res.headers['set-cookie'] as unknown as string[] | undefined) ?? []).toEqual([]);
     expect(rowDiff(before, await rowMap(pool))).toEqual({});
     const rowA = (await challenges()).find((r) => r.id === a.challengeId);
     expect(rowA.consumed_at).toBeNull();

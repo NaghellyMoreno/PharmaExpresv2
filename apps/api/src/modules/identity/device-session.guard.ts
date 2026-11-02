@@ -1,8 +1,8 @@
 import { applyDecorators, CanActivate, createParamDecorator, ExecutionContext, Injectable, UnauthorizedException, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
-import { DeviceSessionRoute } from '../../common/access';
-import { DEVICE_COOKIE_NAME, readCookie } from './cookies';
-import { IdentityService } from './identity.service';
+import { DeviceSessionRoute } from '../../common/access.js';
+import { DEVICE_COOKIE_NAME, readCookie } from './cookies.js';
+import { IdentityService } from './identity.service.js';
 
 type RequestWithDevice = Request & { deviceId?: string };
 

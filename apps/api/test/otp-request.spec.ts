@@ -3,13 +3,13 @@ import type { LoggerService } from '@nestjs/common';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import type { Pool } from 'pg';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { ConsentCookieService } from '../src/modules/identity/consent-cookie.service';
-import { generateOtpCode } from '../src/modules/identity/identity-crypto';
-import { renderOtpEmail, renderOtpSms } from '../src/modules/notifications/otp-templates';
-import { EMAIL_SENDER, SMS_SENDER } from '../src/modules/notifications/messaging';
-import { createTestApp } from './support/app';
-import { trackSends } from './support/sends';
-import { validateAgainstSchema } from './support/contract';
+import { ConsentCookieService } from '../src/modules/identity/consent-cookie.service.js';
+import { generateOtpCode } from '../src/modules/identity/identity-crypto.js';
+import { renderOtpEmail, renderOtpSms } from '../src/modules/notifications/otp-templates.js';
+import { EMAIL_SENDER, SMS_SENDER } from '../src/modules/notifications/messaging.js';
+import { createTestApp } from './support/app.js';
+import { trackSends } from './support/sends.js';
+import { validateAgainstSchema } from './support/contract.js';
 import {
   AFFILIATED,
   AFFILIATED_INACTIVE,
@@ -29,7 +29,7 @@ import {
   waitForMessages,
   waitForSms,
   type Accepted,
-} from './support/identity';
+} from './support/identity.js';
 
 // F003, pasos 1 a 3 y 7 a 9 (pedir el código): contracts/F003.md. PostgreSQL real; mensajes en modo capture.
 

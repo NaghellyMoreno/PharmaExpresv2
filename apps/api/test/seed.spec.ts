@@ -4,8 +4,8 @@ import os from 'node:os';
 import path from 'node:path';
 import type { Pool } from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { seedAffiliates } from '../src/seed/affiliates';
-import { FIXTURE_AFFILIATES, createSeedPool } from './support/identity';
+import { seedAffiliates } from '../src/seed/affiliates.js';
+import { FIXTURE_AFFILIATES, createSeedPool } from './support/identity.js';
 
 // Criterio T.6 de F003: la carga de afiliados es repetible y rechaza datos mal formados sin imprimir valores.
 const base = { fullName: 'Paciente Ficticio Cuatro', eps: 'sanitas', affiliationStatus: 'active', email: null };
@@ -39,7 +39,7 @@ describe('db:seed (T.6)', () => {
   });
 
   it('el comando pnpm db:seed corre dos veces seguidas con el archivo de prueba', () => {
-    const cwd = path.resolve(__dirname, '..');
+    const cwd = path.resolve(import.meta.dirname, '..');
     for (let i = 0; i < 2; i++) {
       const out = execFileSync('pnpm', ['db:seed', '--', '--file', FIXTURE_AFFILIATES], { cwd, encoding: 'utf8', env: process.env });
       expect(out).toContain('Afiliados simulados cargados: 3.');

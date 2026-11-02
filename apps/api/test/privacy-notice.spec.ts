@@ -2,10 +2,10 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import request from 'supertest';
 import { Pool } from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { createPool } from '../src/db/client';
-import { countRows } from './support/db';
-import { createTestApp } from './support/app';
-import { validateAgainstSchema } from './support/contract';
+import { createPool } from '../src/db/client.js';
+import { countRows } from './support/db.js';
+import { createTestApp } from './support/app.js';
+import { validateAgainstSchema } from './support/contract.js';
 
 describe('GET /api/v1/privacy-notice', () => {
   let app: NestExpressApplication;

@@ -1,7 +1,7 @@
 import { Controller, Get, Header } from '@nestjs/common';
 import type { components } from '@pharma/api-contract';
-import { DeviceId, DeviceSession } from './device-session.guard';
-import { IdentityService } from './identity.service';
+import { DeviceId, DeviceSession } from './device-session.guard.js';
+import { IdentityService } from './identity.service.js';
 
 @Controller('me')
 export class ChannelSessionController {

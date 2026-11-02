@@ -1,7 +1,7 @@
 // Mueve el reloj de la aplicación solo en pruebas (ADR 0021). Usa el usuario de la semilla; no hay endpoint HTTP.
 // Uso: pnpm --filter api test:clock advance <duración> | set <segundos> | reset
 // La duración admite segundos o un sufijo s, m, h o d (por ejemplo, 90, 10m, 2h).
-import { createPool } from '../src/db/client';
+import { createPool } from '../src/db/client.js';
 
 const UNITS: Record<string, number> = { s: 1, m: 60, h: 3600, d: 86400 };
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ConsentCookieService, type ConsentPayload } from '../src/modules/identity/consent-cookie.service';
+import { ConsentCookieService, type ConsentPayload } from '../src/modules/identity/consent-cookie.service.js';
 
 const payload: ConsentPayload = {
   noticeVersion: '2026-10-v1',

@@ -7,8 +7,8 @@ import type { Pool } from 'pg';
 import request from 'supertest';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { parse } from 'yaml';
-import { createTestApp } from './support/app';
-import { validateAgainstSchema } from './support/contract';
+import { createTestApp } from './support/app.js';
+import { validateAgainstSchema } from './support/contract.js';
 import {
   AFFILIATED,
   ORIGIN,
@@ -21,9 +21,9 @@ import {
   setClockOffset,
   verifyCode,
   type Accepted,
-} from './support/identity';
-import { trackSends } from './support/sends';
-import { rowDiff, rowMap } from './support/telegram';
+} from './support/identity.js';
+import { trackSends } from './support/sends.js';
+import { rowDiff, rowMap } from './support/telegram.js';
 
 // F005, pasos 1 a 4 (vencimiento, bloqueo por intentos, caminos de salida, sin cambio de datos): contracts/F005.md.
 // PostgreSQL real; mensajes en modo capture. Las cadenas están escritas aquí a propósito.
@@ -123,7 +123,7 @@ describe('paso 1: código vencido a los 10 minutos, aunque sea correcto', () => 
     const res = await verifyCode(app, accepted.cookie, { challengeId, code });
     expect(validateAgainstSchema('Problem', res.body)).toEqual([]);
     const text = JSON.stringify(res.body) + JSON.stringify(res.headers);
-    const affiliates = JSON.parse(readFileSync(resolve(__dirname, '../../../data/simulated/affiliates.json'), 'utf8')) as Array<{
+    const affiliates = JSON.parse(readFileSync(resolve(import.meta.dirname, '../../../data/simulated/affiliates.json'), 'utf8')) as Array<{
       cedula: string;
       mobilePhone: string;
       email: string | null;
@@ -246,7 +246,7 @@ describe('paso 4: la API no ofrece cambiar el celular ni el correo', () => {
   const CONTACT = /contact|phone|email|celular|correo/i;
 
   it('4.4 ni el contrato ni las rutas reales tienen operaciones de datos de contacto', () => {
-    const doc = parse(readFileSync(resolve(__dirname, '../../../api/openapi.yaml'), 'utf8')) as {
+    const doc = parse(readFileSync(resolve(import.meta.dirname, '../../../api/openapi.yaml'), 'utf8')) as {
       paths: Record<string, Record<string, { operationId?: string }>>;
     };
     const offending: string[] = [];

@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { createApp } from './app';
+import { createApp } from './app.js';
 
 // Vercel detecta esta entrada y la ejecuta como una sola función (ADR 0002).
 async function bootstrap() {

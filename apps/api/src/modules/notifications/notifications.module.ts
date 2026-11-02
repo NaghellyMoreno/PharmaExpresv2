@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import type { Pool } from 'pg';
-import { PG_POOL } from '../../db/db.module';
-import { CaptureEmailSender, CaptureSmsSender } from './capture-messaging';
-import { EMAIL_SENDER, SMS_SENDER, UnavailableSender } from './messaging';
-import { OtpNotifier } from './otp-notifier.service';
+import { PG_POOL } from '../../db/db.module.js';
+import { CaptureEmailSender, CaptureSmsSender } from './capture-messaging.js';
+import { EMAIL_SENDER, SMS_SENDER, UnavailableSender } from './messaging.js';
+import { OtpNotifier } from './otp-notifier.service.js';
 
 const capture = () => process.env.MESSAGING_MODE === 'capture';
 

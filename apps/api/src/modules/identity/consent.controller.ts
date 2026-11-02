@@ -1,10 +1,10 @@
 import { Body, ConflictException, Controller, Get, HttpCode, Inject, Post, Res } from '@nestjs/common';
 import type { Response } from 'express';
-import { Public } from '../../common/access';
-import { CLOCK, type Clock } from '../../common/clock';
-import { CONSENT_COOKIE_NAME, ConsentCookieService } from './consent-cookie.service';
-import { ConsentAcceptanceDto } from './consent.dto';
-import { PRIVACY_NOTICE, type PrivacyNotice } from './privacy-notice';
+import { Public } from '../../common/access.js';
+import { CLOCK, type Clock } from '../../common/clock.js';
+import { CONSENT_COOKIE_NAME, ConsentCookieService } from './consent-cookie.service.js';
+import { ConsentAcceptanceDto } from './consent.dto.js';
+import { PRIVACY_NOTICE, type PrivacyNotice } from './privacy-notice.js';
 
 @Controller()
 export class ConsentController {

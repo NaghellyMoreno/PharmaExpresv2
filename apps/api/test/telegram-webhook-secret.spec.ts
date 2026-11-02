@@ -5,10 +5,10 @@ import type { AddressInfo } from 'node:net';
 import { Pool } from 'pg';
 import request from 'supertest';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createPool } from '../src/db/client';
-import { CaptureTelegramTransport, TELEGRAM_TRANSPORT } from '../src/modules/telegram/telegram-transport';
-import { createTestApp } from './support/app';
-import { countAllRows } from './support/identity';
+import { createPool } from '../src/db/client.js';
+import { CaptureTelegramTransport, TELEGRAM_TRANSPORT } from '../src/modules/telegram/telegram-transport.js';
+import { createTestApp } from './support/app.js';
+import { countAllRows } from './support/identity.js';
 
 // F007: el webhook solo procesa peticiones con el secreto correcto (contracts/F007.md).
 // Solo cubre los huecos que F002 y F006 no probaron. Todo con datos ficticios.

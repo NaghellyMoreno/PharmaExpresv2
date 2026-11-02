@@ -2,8 +2,8 @@ import type { LoggerService } from '@nestjs/common';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { PRIVACY_NOTICE } from '../src/modules/identity/privacy-notice';
-import { createTestApp } from './support/app';
+import { PRIVACY_NOTICE } from '../src/modules/identity/privacy-notice.js';
+import { createTestApp } from './support/app.js';
 
 // Criterio 3.4 (invariante 8): ni cédulas ni el valor de la cookie en los registros.
 const CEDULA = /\b\d{6,10}\b/;

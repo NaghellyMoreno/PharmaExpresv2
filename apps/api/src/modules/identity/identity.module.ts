@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
-import { NotificationsModule } from '../notifications/notifications.module';
-import { ChannelSessionController } from './channel-session.controller';
-import { ConsentCookieGuard } from './consent-cookie.guard';
-import { ConsentCookieService } from './consent-cookie.service';
-import { ConsentController } from './consent.controller';
-import { IdentityController } from './identity.controller';
-import { IdentityService } from './identity.service';
+import { NotificationsModule } from '../notifications/notifications.module.js';
+import { ChannelSessionController } from './channel-session.controller.js';
+import { ConsentCookieGuard } from './consent-cookie.guard.js';
+import { ConsentCookieService } from './consent-cookie.service.js';
+import { ConsentController } from './consent.controller.js';
+import { IdentityController } from './identity.controller.js';
+import { IdentityService } from './identity.service.js';
 
 @Module({
   imports: [NotificationsModule],

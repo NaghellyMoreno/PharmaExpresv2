@@ -1,11 +1,13 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import Ajv2020 from 'ajv/dist/2020';
+import Ajv2020Module from 'ajv/dist/2020.js';
 import { parse } from 'yaml';
 
-const doc = parse(readFileSync(resolve(__dirname, '../../../../api/openapi.yaml'), 'utf8')) as {
+const doc = parse(readFileSync(resolve(import.meta.dirname, '../../../../api/openapi.yaml'), 'utf8')) as {
   components: Record<string, unknown>;
 };
+// ajv es CommonJS: en ESM nativo el export por defecto es el módulo y la clase está en `.default`.
+const Ajv2020 = Ajv2020Module.default;
 const ajv = new Ajv2020({ strict: false, allErrors: true });
 
 /** Valida un valor contra un esquema de components.schemas de api/openapi.yaml (ADR 0017). */

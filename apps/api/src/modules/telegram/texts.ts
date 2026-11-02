@@ -1,5 +1,5 @@
-import { EXIT_PATHS, OTP_REQUEST_MESSAGE } from '../identity/messages';
-import { PRIVACY_NOTICE } from '../identity/privacy-notice';
+import { EXIT_PATHS, OTP_REQUEST_MESSAGE } from '../identity/messages.js';
+import { PRIVACY_NOTICE } from '../identity/privacy-notice.js';
 
 /** Cadenas del bot en español de Colombia (contratos/F002.md, anexo de T.1). */
 export const BOT_TEXTS = {

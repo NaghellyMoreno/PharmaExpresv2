@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { EMAIL_SENDER, SMS_SENDER, type EmailSender, type SmsSender } from './messaging';
-import { renderOtpEmail, renderOtpSms } from './otp-templates';
+import { EMAIL_SENDER, SMS_SENDER, type EmailSender, type SmsSender } from './messaging.js';
+import { renderOtpEmail, renderOtpSms } from './otp-templates.js';
 
 export interface OtpDelivery {
   code: string;

@@ -1,7 +1,7 @@
 import { Controller, HttpCode, Post, Req, Res } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { TelegramWebhook } from '../../common/access';
-import { TelegramService } from './telegram.service';
+import { TelegramWebhook } from '../../common/access.js';
+import { TelegramService } from './telegram.service.js';
 
 @Controller()
 export class TelegramController {

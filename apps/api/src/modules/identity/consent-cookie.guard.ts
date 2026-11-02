@@ -1,8 +1,8 @@
 import { applyDecorators, CanActivate, createParamDecorator, ExecutionContext, Injectable, UnauthorizedException, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
-import { Public } from '../../common/access';
-import { CONSENT_COOKIE_NAME, ConsentCookieService, type ConsentPayload } from './consent-cookie.service';
-import { readCookie } from './cookies';
+import { Public } from '../../common/access.js';
+import { CONSENT_COOKIE_NAME, ConsentCookieService, type ConsentPayload } from './consent-cookie.service.js';
+import { readCookie } from './cookies.js';
 
 type RequestWithConsent = Request & { consent?: ConsentPayload };
 

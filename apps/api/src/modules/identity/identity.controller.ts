@@ -2,13 +2,13 @@ import { Body, Controller, HttpCode, Post, Req, Res } from '@nestjs/common';
 import { waitUntil } from '@vercel/functions';
 import type { components } from '@pharma/api-contract';
 import type { Request, Response } from 'express';
-import { OtpNotifier } from '../notifications/otp-notifier.service';
-import { Consent, PublicWithConsent } from './consent-cookie.guard';
-import type { ConsentPayload } from './consent-cookie.service';
-import { DEVICE_COOKIE_NAME, readCookie } from './cookies';
-import { IdentityService } from './identity.service';
-import { CedulaDto, OtpVerificationDto } from './identity.dto';
-import { OTP_REQUEST_MESSAGE, RESEND_AVAILABLE_IN_SECONDS } from './messages';
+import { OtpNotifier } from '../notifications/otp-notifier.service.js';
+import { Consent, PublicWithConsent } from './consent-cookie.guard.js';
+import type { ConsentPayload } from './consent-cookie.service.js';
+import { DEVICE_COOKIE_NAME, readCookie } from './cookies.js';
+import { IdentityService } from './identity.service.js';
+import { CedulaDto, OtpVerificationDto } from './identity.dto.js';
+import { OTP_REQUEST_MESSAGE, RESEND_AVAILABLE_IN_SECONDS } from './messages.js';
 
 @Controller('identity')
 export class IdentityController {
