@@ -52,7 +52,8 @@ export class CaptureTelegramTransport implements TelegramTransport {
         chatId: typeof p.chat_id === 'number' ? p.chat_id : undefined,
         text: p.text,
         replyMarkup: p.reply_markup,
-        keys: Object.keys(p),
+        // Como en el JSON que viaja a Telegram: las claves con valor indefinido no se envían.
+        keys: Object.entries(p).filter(([, v]) => v !== undefined).map(([k]) => k),
       });
       if (this.failure?.kind === 'network') {
         throw new HttpError(this.failure.description, new Error(this.failure.description));

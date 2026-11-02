@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { HttpException, Inject, Injectable, Logger } from '@nestjs/common';
 import { waitUntil } from '@vercel/functions';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { eq, sql } from 'drizzle-orm';
@@ -23,6 +23,8 @@ const CODE = /^[0-9]{6}$/;
 interface Conversation {
   step: 'awaiting_cedula' | 'awaiting_code' | 'verified';
   challengeId?: string;
+  /** Reto ya consumido: en `verified` un código de 6 dígitos se compara con él y recibe "Código ya usado". */
+  lastChallengeId?: string;
   pendingAcceptance: { noticeVersion: string; declarant: Declarant; acceptedAt: string };
 }
 interface ChatRow {
@@ -111,9 +113,51 @@ export class TelegramService {
     const trimmed = value.trim();
     if (chat.conversation.step === 'awaiting_code') {
       if (!CODE.test(trimmed)) return this.send(ctx, BOT_TEXTS.codeIncomplete);
-      return; // La verificación llega en el siguiente commit de F004.
+      return this.verifyCode(ctx, chat, chat.conversation.challengeId, trimmed);
     }
-    if (chat.conversation.step === 'awaiting_cedula') return this.requestCode(ctx, chat, trimmed);
+    if (chat.conversation.step === 'verified') {
+      // Un código de 6 dígitos se compara con el reto ya consumido; cualquier otro texto no tiene respuesta (use /start).
+      if (CODE.test(trimmed)) return this.verifyCode(ctx, chat, chat.conversation.lastChallengeId, trimmed);
+      return;
+    }
+    return this.requestCode(ctx, chat, trimmed);
+  }
+
+  /**
+   * Verifica el código con el mismo servicio de la web. Si es correcto, en una sola transacción: consume el reto, crea
+   * al paciente, registra la aceptación guardada al aceptar (R-29) y vincula el chat. Solo la cédula y el código
+   * verifican (invariante 4): el identificador del chat no prueba nada.
+   */
+  private async verifyCode(ctx: Context, chat: ChatRow, challengeId: string | undefined, code: string): Promise<void> {
+    try {
+      const pending = chat.conversation.pendingAcceptance;
+      await this.identity.verifyChallenge(challengeId ?? '', code, {
+        consent: { ...pending, channel: 'telegram' },
+        link: async (c, { patientRefId }) => {
+          await this.identity.resolveBinding(c, { column: 'telegram_chat_id', id: chat.id }, patientRefId);
+          await c.query(
+            `UPDATE telegram_chats
+             SET conversation = jsonb_build_object('step', 'verified', 'lastChallengeId', $2::text,
+                                                   'pendingAcceptance', conversation->'pendingAcceptance'),
+                 updated_at = app.clock_now()
+             WHERE id = $1`,
+            [chat.id, challengeId],
+          );
+        },
+      });
+    } catch (error) {
+      return this.send(ctx, this.verificationFailure(error));
+    }
+    await this.send(ctx, BOT_TEXTS.verified);
+  }
+
+  /** Un código incorrecto y uno ya usado tienen su mensaje; vencido, sin intentos o un fallo del sistema, el genérico. */
+  private verificationFailure(error: unknown): string {
+    const body = error instanceof HttpException ? (error.getResponse() as { code?: string }) : null;
+    if (body?.code === 'code_incorrect') return BOT_TEXTS.codeIncorrect;
+    if (body?.code === 'code_superseded') return BOT_TEXTS.codeUsed;
+    if (!body) this.logger.error(`No se pudo verificar el código (${describeError(error)})`);
+    return BOT_TEXTS.codeNotVerified;
   }
 
   /** Pide el código al servicio de identidad y responde el mensaje aprobado, exista o no la cédula (RNF-032). */
