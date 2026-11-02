@@ -6,5 +6,7 @@ packages:
 # Scripts de instalación permitidos (pnpm 12 los bloquea por defecto).
 allowBuilds:
   "@embedded-postgres/darwin-arm64": true
+  # Postgres embebido es solo para la base local (db:local); en Vercel/Linux no se usa.
+  "@embedded-postgres/linux-x64": false
   "@swc/core": true
   esbuild: true
