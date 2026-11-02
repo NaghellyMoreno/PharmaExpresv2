@@ -12,7 +12,7 @@
       "Volver a abrir la web y aceptar como tercero (el registro de la aceptación en la base de datos se verifica en F003, al completar la verificación de identidad)",
       "Verificar que solo después de aceptar se pide la cédula"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "F002",

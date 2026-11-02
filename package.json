@@ -16,5 +16,8 @@
   },
   "devDependencies": {
     "@redocly/cli": "2.72.1"
+  },
+  "dependencies": {
+    "@vercel/blob": "^2.8.2"
   }
 }
