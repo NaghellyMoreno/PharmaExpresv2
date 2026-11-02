@@ -177,7 +177,8 @@ test.describe('con una vinculación vigente', () => {
     expect(await rowMap()).toEqual(before);
     // 2.10: accesibilidad y teclado hasta "Revocar mi autorización".
     expect(await violations(page)).toEqual([]);
-    await page.keyboard.press('Tab');
+    // F011 suma dos botones antes del enlace ("Vincular otro paciente" e "Iniciar una gestión"): el enlace es el tercer Tab.
+    for (let i = 0; i < 3; i++) await page.keyboard.press('Tab');
     await expect(page.getByRole('link', { name: S.revoke })).toBeFocused();
     await reopened.close();
   });
