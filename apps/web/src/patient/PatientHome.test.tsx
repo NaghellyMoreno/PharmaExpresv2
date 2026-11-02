@@ -64,10 +64,11 @@ describe('P-01 Inicio', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'No acepto' }));
     expect(screen.getByText(/atención presencial/)).toBeInTheDocument();
     expect(screen.queryByLabelText('Cédula')).toBeNull();
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    // F009: además del aviso, la carga consulta GET /me para reconocer al navegador vinculado.
+    expect(fetchMock).toHaveBeenCalledTimes(2);
     await userEvent.click(screen.getByRole('button', { name: 'Volver al aviso' }));
     expect(screen.getByRole('heading', { level: 1, name: 'Título de prueba 1' })).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it.each([

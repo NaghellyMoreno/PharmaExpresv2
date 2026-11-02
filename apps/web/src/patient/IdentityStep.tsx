@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { CodeRequestRejected, requestVerificationCode, verifyIdentity, type NextStep } from './api';
+import { CodeRequestRejected, requestVerificationCode, verifyIdentity, type Binding, type NextStep } from './api';
+import { LinkedPatient } from './LinkedPatient';
 import { EXIT_STEPS, TEXTS } from './texts';
 
 type Phase =
   | { name: 'cedula'; focus?: boolean }
   | { name: 'code'; challengeId: string; message: string }
-  | { name: 'verified'; challengeId: string; message: string };
+  | { name: 'verified'; challengeId: string; message: string; binding?: Binding };
 
 const CEDULA_FORMAT = /^[0-9]{5,12}$/;
 const CODE_FORMAT = /^[0-9]{6}$/;
@@ -21,6 +22,7 @@ export function IdentityStep() {
     return (
       <main>
         <p role="status">{TEXTS.verified}</p>
+        {phase.binding && <LinkedPatient bindings={[phase.binding]} />}
         <button type="button" onClick={() => setPhase({ ...phase, name: 'code' })}>
           {TEXTS.verifyAnother}
         </button>
@@ -31,7 +33,7 @@ export function IdentityStep() {
     <CodeForm
       challengeId={phase.challengeId}
       message={phase.message}
-      onVerified={() => setPhase({ ...phase, name: 'verified' })}
+      onVerified={(binding) => setPhase({ ...phase, name: 'verified', binding })}
       onNewCode={() => setPhase({ name: 'cedula', focus: true })}
     />
   );
@@ -106,7 +108,7 @@ function CedulaForm(props: { focusOnMount?: boolean; onAccepted: (r: { challenge
   );
 }
 
-function CodeForm(props: { challengeId: string; message: string; onVerified: () => void; onNewCode: () => void }) {
+function CodeForm(props: { challengeId: string; message: string; onVerified: (binding?: Binding) => void; onNewCode: () => void }) {
   const [code, setCode] = useState('');
   const [exit, setExit] = useState<{ reason: 'expired' | 'exhausted'; nextSteps: NextStep[] } | null>(null);
   const [error, setError] = useState<'incomplete' | 'incorrect' | 'used' | 'error' | null>(null);
@@ -125,7 +127,7 @@ function CodeForm(props: { challengeId: string; message: string; onVerified: () 
     setError(null);
     setPending(true);
     const outcome = await verifyIdentity(props.challengeId, code);
-    if (outcome.kind === 'verified') return props.onVerified();
+    if (outcome.kind === 'verified') return props.onVerified(outcome.binding);
     if (outcome.kind === 'expired' || outcome.kind === 'exhausted') return setExit({ reason: outcome.kind, nextSteps: outcome.nextSteps });
     if (outcome.kind === 'exhausted_now') return setExit({ reason: 'exhausted', nextSteps: [] });
     setError(outcome.kind);

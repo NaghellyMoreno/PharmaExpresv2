@@ -1,25 +1,33 @@
 import { useCallback, useEffect, useState } from 'react';
-import { acceptPrivacyNotice, fetchPrivacyNotice, type Declarant, type PrivacyNotice } from './api';
+import { acceptPrivacyNotice, fetchLinkedBindings, fetchPrivacyNotice, type Binding, type Declarant, type PrivacyNotice } from './api';
 import { IdentityStep } from './IdentityStep';
+import { LinkedPatient } from './LinkedPatient';
 import { REVOKE_PATH, TEXTS } from './texts';
 
 type View =
   | { name: 'loading' }
   | { name: 'error' }
+  | { name: 'linked'; bindings: Binding[] }
   | { name: 'notice'; notice: PrivacyNotice }
   | { name: 'rejected'; notice: PrivacyNotice }
   | { name: 'accepted' };
 
-/** P-01 Inicio: aviso de privacidad. No se pide ningún dato antes de aceptarlo (invariante 3). */
+/**
+ * Inicio. Primero pregunta a la API si este navegador tiene una vinculación vigente (P-03); si no, P-01 con el aviso.
+ * Con vinculación vigente no se repite el aviso ni el código. No se pide ningún dato antes de aceptar (invariante 3).
+ */
 export function PatientHome() {
   const [view, setView] = useState<View>({ name: 'loading' });
 
   const load = useCallback(() => {
     setView({ name: 'loading' });
-    fetchPrivacyNotice().then(
-      (notice) => setView({ name: 'notice', notice }),
-      () => setView({ name: 'error' }),
-    );
+    fetchLinkedBindings()
+      .then((bindings) =>
+        bindings.length > 0
+          ? setView({ name: 'linked', bindings })
+          : fetchPrivacyNotice().then((notice) => setView({ name: 'notice', notice })),
+      )
+      .catch(() => setView({ name: 'error' }));
   }, []);
   useEffect(load, [load]);
 
@@ -39,6 +47,7 @@ export function PatientHome() {
           </p>
         </section>
       )}
+      {view.name === 'linked' && <LinkedPatient bindings={view.bindings} />}
       {view.name === 'rejected' && (
         <section>
           <p role="status">{TEXTS.rejected}</p>

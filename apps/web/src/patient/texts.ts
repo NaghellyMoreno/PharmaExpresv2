@@ -31,9 +31,17 @@ export const TEXTS = {
   epsGuidance:
     'El celular y el correo se cambian en su EPS (Salud Total o Sanitas), no en Pharma Express. Comuníquese con su EPS para actualizar sus datos y luego pida un código nuevo.',
   inPersonGuidance: 'Puede acudir a la atención presencial en un punto de Disfarma en Manizales.',
+  // P-03 mínima (F009). Textos provisionales, Inferido hasta que la usuaria los confirme.
+  linkedTitle: 'Paciente vinculado',
+  linkedUntil: (date: string) => `Vinculación vigente hasta el ${date}.`,
+  sessionError: 'No pudimos consultar su sesión. Intente de nuevo.',
   tooSoon: 'Ya enviamos un código hace poco. Espere 2 minutos para pedir uno nuevo.',
   hourlyLimit: 'Alcanzó el límite de códigos por hora. Intente más tarde o acuda a la atención presencial.',
 } as const;
+
+/** Fecha legible en la zona de Bogotá, por ejemplo "2 de febrero de 2027". */
+export const formatDate = (iso: string) =>
+  new Intl.DateTimeFormat('es-CO', { dateStyle: 'long', timeZone: 'America/Bogota' }).format(new Date(iso));
 
 /** Los tres caminos de salida, en orden. Se usan cuando la respuesta no los trae (tercer error). */
 export const EXIT_STEPS: Array<{ kind: 'request_new_code' | 'update_data_at_eps' | 'in_person_service'; label: string }> = [

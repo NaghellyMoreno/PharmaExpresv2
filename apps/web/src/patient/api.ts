@@ -22,13 +22,28 @@ export async function acceptPrivacyNotice(noticeVersion: string, declarant: Decl
   if (res.status !== 204) throw new Error('consents-acceptance');
 }
 
+export type Binding = components['schemas']['Binding'];
+
+/**
+ * GET /me: las vinculaciones vigentes de este navegador. 401 o lista vacía significan "sin vinculación" (la cookie sola no
+ * da acceso: lo decide la API); un fallo de red o un 5xx lanzan un error para mostrar "Reintentar".
+ */
+export async function fetchLinkedBindings(): Promise<Binding[]> {
+  const res = await fetch(`${BASE}/me`);
+  if (res.status === 401) return [];
+  if (!res.ok) throw new Error('me');
+  const body = (await res.json().catch(() => null)) as Partial<components['schemas']['ChannelSession']> | null;
+  return Array.isArray(body?.bindings) ? body.bindings : [];
+}
+
 export type CodeRequestAccepted = components['schemas']['OtpRequestAccepted'];
 export type NextStep = components['schemas']['NextStep'];
 type Problem = components['schemas']['Problem'];
 
 /** Resultado de verificar: vencido y agotado traen los caminos de salida que manda la API. */
 export type VerifyOutcome =
-  | { kind: 'verified' | 'incorrect' | 'used' | 'error' }
+  | { kind: 'verified'; binding?: Binding }
+  | { kind: 'incorrect' | 'used' | 'error' }
   | { kind: 'exhausted_now' }
   | { kind: 'expired' | 'exhausted'; nextSteps: NextStep[] };
 
@@ -65,7 +80,10 @@ export async function verifyIdentity(challengeId: string, code: string): Promise
       headers: JSON_HEADERS,
       body: JSON.stringify({ challengeId, code } satisfies components['schemas']['OtpVerificationInput']),
     });
-    if (res.status === 200) return { kind: 'verified' };
+    if (res.status === 200) {
+      const result = (await res.json().catch(() => null)) as Partial<components['schemas']['VerificationResult']> | null;
+      return { kind: 'verified', binding: result?.binding };
+    }
     const problem = (await res.json().catch(() => ({}))) as Partial<Problem>;
     // El tercer error ya agota los intentos: no hace falta esperar a un cuarto envío que no podría servir.
     if (res.status === 422 && problem.code === 'code_incorrect') return problem.attemptsRemaining === 0 ? { kind: 'exhausted_now' } : { kind: 'incorrect' };
