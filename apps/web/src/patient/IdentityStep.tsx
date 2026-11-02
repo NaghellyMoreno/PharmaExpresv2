@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { requestVerificationCode, verifyIdentity } from './api';
-import { TEXTS } from './texts';
+import { CodeRequestRejected, requestVerificationCode, verifyIdentity, type NextStep } from './api';
+import { EXIT_STEPS, TEXTS } from './texts';
 
 type Phase =
-  | { name: 'cedula' }
+  | { name: 'cedula'; focus?: boolean }
   | { name: 'code'; challengeId: string; message: string }
   | { name: 'verified'; challengeId: string; message: string };
 
@@ -16,7 +16,7 @@ const CODE_FORMAT = /^[0-9]{6}$/;
  */
 export function IdentityStep() {
   const [phase, setPhase] = useState<Phase>({ name: 'cedula' });
-  if (phase.name === 'cedula') return <CedulaForm onAccepted={(r) => setPhase({ name: 'code', ...r })} />;
+  if (phase.name === 'cedula') return <CedulaForm focusOnMount={phase.focus} onAccepted={(r) => setPhase({ name: 'code', ...r })} />;
   if (phase.name === 'verified') {
     return (
       <main>
@@ -27,14 +27,32 @@ export function IdentityStep() {
       </main>
     );
   }
-  return <CodeForm challengeId={phase.challengeId} message={phase.message} onVerified={() => setPhase({ ...phase, name: 'verified' })} />;
+  return (
+    <CodeForm
+      challengeId={phase.challengeId}
+      message={phase.message}
+      onVerified={() => setPhase({ ...phase, name: 'verified' })}
+      onNewCode={() => setPhase({ name: 'cedula', focus: true })}
+    />
+  );
 }
 
-function CedulaForm(props: { onAccepted: (r: { challengeId: string; message: string }) => void }) {
+type CedulaError = 'invalid' | 'request' | 'too_soon' | 'hourly_limit';
+const CEDULA_ERROR_TEXT: Record<CedulaError, string> = {
+  invalid: TEXTS.cedulaInvalid,
+  request: TEXTS.requestError,
+  too_soon: TEXTS.tooSoon,
+  hourly_limit: TEXTS.hourlyLimit,
+};
+
+function CedulaForm(props: { focusOnMount?: boolean; onAccepted: (r: { challengeId: string; message: string }) => void }) {
   const [cedula, setCedula] = useState('');
-  const [error, setError] = useState<'invalid' | 'request' | null>(null);
+  const [error, setError] = useState<CedulaError | null>(null);
   const [pending, setPending] = useState(false);
   const input = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (props.focusOnMount) input.current?.focus();
+  }, [props.focusOnMount]);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -50,9 +68,11 @@ function CedulaForm(props: { onAccepted: (r: { challengeId: string; message: str
     try {
       const accepted = await requestVerificationCode(cedula);
       props.onAccepted({ challengeId: accepted.challengeId, message: accepted.message });
-    } catch {
-      setError('request');
+    } catch (e) {
+      // Un 429 deja el foco en el campo de cédula; no hay cuenta regresiva.
+      setError(e instanceof CodeRequestRejected ? e.reason : 'request');
       setPending(false);
+      if (e instanceof CodeRequestRejected) input.current?.focus();
     }
   }
 
@@ -75,7 +95,7 @@ function CedulaForm(props: { onAccepted: (r: { challengeId: string; message: str
         </label>
         {error && (
           <p role="alert" id="cedula-error">
-            {error === 'invalid' ? TEXTS.cedulaInvalid : TEXTS.requestError}
+            {CEDULA_ERROR_TEXT[error]}
           </p>
         )}
         <button type="submit" disabled={pending}>
@@ -86,8 +106,9 @@ function CedulaForm(props: { onAccepted: (r: { challengeId: string; message: str
   );
 }
 
-function CodeForm(props: { challengeId: string; message: string; onVerified: () => void }) {
+function CodeForm(props: { challengeId: string; message: string; onVerified: () => void; onNewCode: () => void }) {
   const [code, setCode] = useState('');
+  const [exit, setExit] = useState<{ reason: 'expired' | 'exhausted'; nextSteps: NextStep[] } | null>(null);
   const [error, setError] = useState<'incomplete' | 'incorrect' | 'used' | 'error' | null>(null);
   const [pending, setPending] = useState(false);
   const input = useRef<HTMLInputElement>(null);
@@ -104,8 +125,10 @@ function CodeForm(props: { challengeId: string; message: string; onVerified: () 
     setError(null);
     setPending(true);
     const outcome = await verifyIdentity(props.challengeId, code);
-    if (outcome === 'verified') return props.onVerified();
-    setError(outcome);
+    if (outcome.kind === 'verified') return props.onVerified();
+    if (outcome.kind === 'expired' || outcome.kind === 'exhausted') return setExit({ reason: outcome.kind, nextSteps: outcome.nextSteps });
+    if (outcome.kind === 'exhausted_now') return setExit({ reason: 'exhausted', nextSteps: [] });
+    setError(outcome.kind);
     setPending(false);
     input.current?.focus();
   }
@@ -116,6 +139,7 @@ function CodeForm(props: { challengeId: string; message: string; onVerified: () 
     used: TEXTS.codeUsed,
     error: TEXTS.verifyError,
   };
+  if (exit) return <ExitPaths reason={exit.reason} nextSteps={exit.nextSteps} onNewCode={props.onNewCode} />;
   return (
     <main>
       <p role="status">{props.message}</p>
@@ -143,6 +167,35 @@ function CodeForm(props: { challengeId: string; message: string; onVerified: () 
           {TEXTS.verify}
         </button>
       </form>
+    </main>
+  );
+}
+
+/**
+ * Código vencido o con intentos agotados: el campo del código sale y se ofrecen los tres caminos (HU-003 criterios 4 a 7).
+ * Los caminos "EPS" y "atención presencial" solo muestran texto: nunca hay un formulario para cambiar el celular o el correo.
+ */
+function ExitPaths(props: { reason: 'expired' | 'exhausted'; nextSteps: NextStep[]; onNewCode: () => void }) {
+  const [guidance, setGuidance] = useState<string | null>(null);
+  const label = (kind: NextStep['kind'], fallback: string) => props.nextSteps.find((s) => s.kind === kind)?.label ?? fallback;
+  const action = {
+    request_new_code: props.onNewCode,
+    update_data_at_eps: () => setGuidance(TEXTS.epsGuidance),
+    in_person_service: () => setGuidance(TEXTS.inPersonGuidance),
+  };
+  return (
+    <main>
+      <p role="alert">{props.reason === 'expired' ? TEXTS.codeExpired : TEXTS.attemptsExhausted}</p>
+      <ul>
+        {EXIT_STEPS.map((step) => (
+          <li key={step.kind}>
+            <button type="button" onClick={action[step.kind]}>
+              {label(step.kind, step.label)}
+            </button>
+          </li>
+        ))}
+      </ul>
+      {guidance && <p role="status">{guidance}</p>}
     </main>
   );
 }

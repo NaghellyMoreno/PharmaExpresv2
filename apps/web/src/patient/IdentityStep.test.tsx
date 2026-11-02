@@ -141,3 +141,115 @@ describe('P-02: verificar el código', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: S.verify })).toBeEnabled());
   });
 });
+
+// F005 (contracts/F005.md): caminos de salida, orientación y límites de pedido. Cadenas del anexo escritas a propósito.
+const F = {
+  expired: 'El código venció. Elija una opción para continuar.',
+  exhausted: 'Se agotaron los intentos. Elija una opción para continuar.',
+  newCode: 'Pedir un código nuevo',
+  eps: 'Actualizar mis datos en la EPS',
+  inPerson: 'Acudir a la atención presencial',
+  epsGuidance:
+    'El celular y el correo se cambian en su EPS (Salud Total o Sanitas), no en Pharma Express. Comuníquese con su EPS para actualizar sus datos y luego pida un código nuevo.',
+  inPersonGuidance: 'Puede acudir a la atención presencial en un punto de Disfarma en Manizales.',
+  tooSoon: 'Ya enviamos un código hace poco. Espere 2 minutos para pedir uno nuevo.',
+  hourly: 'Alcanzó el límite de códigos por hora. Intente más tarde o acuda a la atención presencial.',
+};
+const NEXT_STEPS = [
+  { kind: 'request_new_code', label: F.newCode },
+  { kind: 'update_data_at_eps', label: F.eps },
+  { kind: 'in_person_service', label: F.inPerson },
+];
+const gone = (code: string, nextSteps: unknown[] = NEXT_STEPS) => new Response(JSON.stringify({ status: 410, code, nextSteps }), { status: 410 });
+const incorrect = (attemptsRemaining: number) => new Response(JSON.stringify({ status: 422, code: 'code_incorrect', attemptsRemaining }), { status: 422 });
+async function submitCode(code = '204871') {
+  await toCodeStep();
+  await userEvent.type(screen.getByLabelText(S.codeLabel), code);
+  await userEvent.click(screen.getByRole('button', { name: S.verify }));
+}
+const threePaths = () => {
+  for (const name of [F.newCode, F.eps, F.inPerson]) expect(screen.getByRole('button', { name })).toBeInTheDocument();
+};
+
+describe('P-02: caminos de salida (F005)', () => {
+  it.each([
+    ['1.7: 410 code_expired', () => gone('code_expired'), F.expired],
+    ['2.8: 410 code_attempts_exhausted', () => gone('code_attempts_exhausted'), F.exhausted],
+    ['2.7: el tercer error (422 con attemptsRemaining 0)', () => incorrect(0), F.exhausted],
+  ])('%s quita el campo y "Verificar", muestra el mensaje en role=alert y los tres caminos', async (_n, answer, text) => {
+    verifyResponse = answer;
+    await submitCode();
+    expect(await screen.findByRole('alert')).toHaveTextContent(text);
+    expect(screen.getByRole('alert').textContent).toBe(text);
+    expect(screen.queryByLabelText(S.codeLabel)).toBeNull();
+    expect(screen.queryByRole('button', { name: S.verify })).toBeNull();
+    expect(screen.queryByText(S.verified)).toBeNull();
+    threePaths();
+  });
+
+  it('2.7: tras dos errores (422 con attemptsRemaining 1) la pantalla sigue con el campo y sin los caminos', async () => {
+    verifyResponse = () => incorrect(1);
+    await submitCode();
+    expect(await screen.findByRole('alert')).toHaveTextContent(S.incorrect);
+    expect(screen.getByLabelText(S.codeLabel)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: F.newCode })).toBeNull();
+  });
+
+  it('410 code_superseded no ofrece los caminos y conserva el mensaje de F003', async () => {
+    verifyResponse = () => problem(410, 'code_superseded');
+    await submitCode();
+    expect(await screen.findByRole('alert')).toHaveTextContent(S.used);
+    expect(screen.queryByRole('button', { name: F.newCode })).toBeNull();
+  });
+
+  it('3.4: "Pedir un código nuevo" vuelve al campo de cédula, vacío y con el foco', async () => {
+    verifyResponse = () => gone('code_expired');
+    await submitCode();
+    await userEvent.click(await screen.findByRole('button', { name: F.newCode }));
+    const field = screen.getByLabelText(S.cedula);
+    expect(field).toHaveValue('');
+    expect(field).toHaveFocus();
+    expect(screen.queryByLabelText(S.codeLabel)).toBeNull();
+  });
+
+  it('3.5 y 4.1: los otros dos caminos solo muestran su texto, sin peticiones nuevas', async () => {
+    verifyResponse = () => gone('code_attempts_exhausted');
+    await submitCode();
+    await userEvent.click(await screen.findByRole('button', { name: F.eps }));
+    const before = fetchMock.mock.calls.length;
+    expect(screen.getByText(F.epsGuidance)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: F.inPerson }));
+    expect(screen.getByText(F.inPersonGuidance)).toBeInTheDocument();
+    expect(fetchMock.mock.calls.length).toBe(before);
+  });
+
+  it('4.2: la vista de orientación no tiene formulario ni campos', async () => {
+    verifyResponse = () => gone('code_expired');
+    const { container } = render(<IdentityStep />);
+    await userEvent.type(screen.getByLabelText(S.cedula), '1000000001');
+    await userEvent.click(screen.getByRole('button', { name: S.next }));
+    await userEvent.type(await screen.findByLabelText(S.codeLabel), '204871');
+    await userEvent.click(screen.getByRole('button', { name: S.verify }));
+    await userEvent.click(await screen.findByRole('button', { name: F.eps }));
+    expect(container.querySelectorAll('form, input, textarea, select')).toHaveLength(0);
+  });
+});
+
+describe('P-02: límites del pedido (F005)', () => {
+  it.each([
+    ['code_too_soon', F.tooSoon],
+    ['code_hourly_limit', F.hourly],
+  ])('el 429 %s muestra su mensaje en role=alert, sin el campo del código ni el mensaje aprobado, y el foco en la cédula', async (code, text) => {
+    fetchMock.mockImplementation(async () => new Response(JSON.stringify({ status: 429, code, retryAfterSeconds: 30 }), { status: 429 }));
+    render(<IdentityStep />);
+    const field = screen.getByLabelText(S.cedula);
+    await userEvent.type(field, '1000000001');
+    await userEvent.click(screen.getByRole('button', { name: S.next }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(text);
+    expect(screen.getByRole('alert').textContent).toBe(text);
+    expect(field).toHaveFocus();
+    expect(screen.queryByLabelText(S.codeLabel)).toBeNull();
+    expect(screen.queryByText(S.approved)).toBeNull();
+    expect(screen.getByRole('button', { name: S.next })).toBeEnabled();
+  });
+});
