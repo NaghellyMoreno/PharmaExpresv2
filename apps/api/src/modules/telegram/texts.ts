@@ -1,4 +1,4 @@
-import { OTP_REQUEST_MESSAGE } from '../identity/messages';
+import { EXIT_PATHS, OTP_REQUEST_MESSAGE } from '../identity/messages';
 import { PRIVACY_NOTICE } from '../identity/privacy-notice';
 
 /** Cadenas del bot en español de Colombia (contratos/F002.md, anexo de T.1). */
@@ -22,6 +22,15 @@ export const BOT_TEXTS = {
   codeIncomplete: 'Código incompleto. Escriba los 6 dígitos.',
   codeNotSent: 'No pudimos enviar el código. Intente de nuevo.',
   codeNotVerified: 'No pudimos verificar el código. Intente de nuevo.',
+  // F006: cadenas Inferidas, las mismas de la web (F005) para que ambos canales digan lo mismo; la usuaria debe confirmarlas.
+  codeExpired: 'El código venció. Elija una opción para continuar.',
+  codeExhausted: 'Se agotaron los intentos. Elija una opción para continuar.',
+  askCedulaForNewCode: 'Escriba la cédula del paciente para pedir un código nuevo.',
+  updateDataAtEps:
+    'El celular y el correo se cambian en su EPS (Salud Total o Sanitas), no en Pharma Express. Comuníquese con su EPS para actualizar sus datos y luego pida un código nuevo.',
+  inPersonService: 'Puede acudir a la atención presencial en un punto de Disfarma en Manizales.',
+  codeTooSoon: 'Ya enviamos un código hace poco. Espere 2 minutos para pedir uno nuevo.',
+  codeHourlyLimit: 'Alcanzó el límite de códigos por hora. Intente más tarde o acuda a la atención presencial.',
 } as const;
 
 /** `callback_data` de los botones: sin datos del usuario y de 64 bytes o menos. */
@@ -31,3 +40,14 @@ export const CALLBACKS = {
   reject: 'reject',
   revoke: 'revoke',
 } as const;
+
+/** Botones de los tres caminos de salida (F006): `callback_data` fijo, en el orden y con las etiquetas de `EXIT_PATHS`. */
+export const EXIT_PATH_CALLBACKS = {
+  request_new_code: 'path:request_new_code',
+  update_data_at_eps: 'path:update_data_at_eps',
+  in_person_service: 'path:in_person_service',
+} as const;
+export const EXIT_BUTTONS = EXIT_PATHS.map((path) => ({
+  label: path.label,
+  data: EXIT_PATH_CALLBACKS[path.kind as keyof typeof EXIT_PATH_CALLBACKS],
+}));

@@ -34,7 +34,9 @@ import { CaptureTelegramTransport, TELEGRAM_TRANSPORT } from '../src/modules/tel
 vi.setConfig({ testTimeout: 60000 });
 
 const AFFILIATED_2 = '1000000002';
-const CODE_NOT_SENT = 'No pudimos enviar el código. Intente de nuevo.';
+// F006: el 429 del bot distingue la espera de 2 minutos del límite por hora (antes decía el texto genérico de fallo).
+const CODE_TOO_SOON = 'Ya enviamos un código hace poco. Espere 2 minutos para pedir uno nuevo.';
+const CODE_HOURLY_LIMIT = 'Alcanzó el límite de códigos por hora. Intente más tarde o acuda a la atención presencial.';
 const FORBIDDEN = ['Medicamento Ficticio A', 'Medicamento Ficticio B', 'Medicamento Ficticio C', 'Diagnóstico Ficticio X', 'Diagnóstico Ficticio Y'];
 const affiliates = JSON.parse(readFileSync(FIXTURE_AFFILIATES, 'utf8')) as Array<{ cedula: string; mobilePhone: string; email: string | null; fullName: string }>;
 
@@ -394,7 +396,7 @@ describe('Telegram: los mismos límites por la huella de la cédula', () => {
     const messages = (await capturedMessages(pool)).length;
     await botAsks(600);
     expect(transport.calls.filter((c) => c.method === 'sendMessage')).toHaveLength(1);
-    expect(sentTexts()).toEqual([CODE_NOT_SENT]);
+    expect(sentTexts()).toEqual([CODE_HOURLY_LIMIT]);
     expect(transport.calls[0].replyMarkup).toBeUndefined();
     await quiet(messages);
     expect(await challenges()).toHaveLength(5);
@@ -406,7 +408,7 @@ describe('Telegram: los mismos límites por la huella de la cédula', () => {
     const apiCode = await begin(AFFILIATED, 0);
     const messages = (await capturedMessages(pool)).length;
     await botAsks(30);
-    expect(sentTexts()).toEqual([CODE_NOT_SENT]);
+    expect(sentTexts()).toEqual([CODE_TOO_SOON]);
     await quiet(messages, 1500);
     expect(await challenges()).toHaveLength(1);
     expect((await verifyCode(app, accepted.cookie, apiCode)).status).toBe(200);

@@ -12,7 +12,7 @@ import { type Declarant } from '../identity/consent-cookie.service';
 import { IdentityService } from '../identity/identity.service';
 import { PRIVACY_NOTICE } from '../identity/privacy-notice';
 import { OtpNotifier } from '../notifications/otp-notifier.service';
-import { BOT_TEXTS, CALLBACKS } from './texts';
+import { BOT_TEXTS, CALLBACKS, EXIT_BUTTONS, EXIT_PATH_CALLBACKS } from './texts';
 import { CAPTURE_BOT_INFO, TELEGRAM_TRANSPORT, type TelegramTransport } from './telegram-transport';
 
 const START_COMMAND = /^\/start(@\w+)?(\s|$)/;
@@ -104,10 +104,7 @@ export class TelegramService {
   /** Atiende un texto de un chat que ya aceptó el aviso, según el paso guardado. */
   private async onText(ctx: Context, chat: ChatRow, value: string): Promise<void> {
     if (START_COMMAND.test(value)) {
-      // Vuelve a pedir la cédula sin tocar la aceptación original (y descarta el reto sin consumirlo).
-      await this.db.execute(sql`UPDATE telegram_chats
-        SET conversation = jsonb_build_object('step', 'awaiting_cedula', 'pendingAcceptance', conversation->'pendingAcceptance')
-        WHERE id = ${chat.id}`);
+      await this.restartCedula(chat.id);
       return this.send(ctx, BOT_TEXTS.askCedula);
     }
     const trimmed = value.trim();
@@ -146,18 +143,33 @@ export class TelegramService {
         },
       });
     } catch (error) {
-      return this.send(ctx, this.verificationFailure(error));
+      const failure = this.verificationFailure(error);
+      return this.send(ctx, failure.text, failure.exitPaths ? exitPathsKeyboard() : undefined);
     }
     await this.send(ctx, BOT_TEXTS.verified);
   }
 
-  /** Un código incorrecto y uno ya usado tienen su mensaje; vencido, sin intentos o un fallo del sistema, el genérico. */
-  private verificationFailure(error: unknown): string {
-    const body = error instanceof HttpException ? (error.getResponse() as { code?: string }) : null;
-    if (body?.code === 'code_incorrect') return BOT_TEXTS.codeIncorrect;
-    if (body?.code === 'code_superseded') return BOT_TEXTS.codeUsed;
+  /** Vuelve a pedir la cédula sin tocar la aceptación original (y descarta el reto sin consumirlo). */
+  private async restartCedula(chatRowId: string): Promise<void> {
+    await this.db.execute(sql`UPDATE telegram_chats
+      SET conversation = jsonb_build_object('step', 'awaiting_cedula', 'pendingAcceptance', conversation->'pendingAcceptance')
+      WHERE id = ${chatRowId}`);
+  }
+
+  /**
+   * El texto según el código del error que ya devuelve el servicio. Vencido, agotado y el tercer error incorrecto
+   * llevan los tres caminos de salida (F006); un fallo del sistema, el genérico.
+   */
+  private verificationFailure(error: unknown): { text: string; exitPaths?: true } {
+    const body = error instanceof HttpException ? (error.getResponse() as { code?: string; attemptsRemaining?: number }) : null;
+    if (body?.code === 'code_incorrect') {
+      return body.attemptsRemaining === 0 ? { text: BOT_TEXTS.codeExhausted, exitPaths: true } : { text: BOT_TEXTS.codeIncorrect };
+    }
+    if (body?.code === 'code_superseded') return { text: BOT_TEXTS.codeUsed };
+    if (body?.code === 'code_expired') return { text: BOT_TEXTS.codeExpired, exitPaths: true };
+    if (body?.code === 'code_attempts_exhausted') return { text: BOT_TEXTS.codeExhausted, exitPaths: true };
     if (!body) this.logger.error(`No se pudo verificar el código (${describeError(error)})`);
-    return BOT_TEXTS.codeNotVerified;
+    return { text: BOT_TEXTS.codeNotVerified };
   }
 
   /** Pide el código al servicio de identidad y responde el mensaje aprobado, exista o no la cédula (RNF-032). */
@@ -173,9 +185,11 @@ export class TelegramService {
         WHERE id = ${chat.id}`);
     } catch (error) {
       // Un 429 (espera de 2 minutos o límite por hora) es esperado: no crea reto ni envía nada y el chat sigue en awaiting_cedula.
-      if (!(error instanceof HttpException && error.getStatus() === 429)) {
-        this.logger.error(`No se pudo pedir el código de verificación (${describeError(error)})`);
+      if (error instanceof HttpException && error.getStatus() === 429) {
+        const code = (error.getResponse() as { code?: string }).code;
+        return this.send(ctx, code === 'code_hourly_limit' ? BOT_TEXTS.codeHourlyLimit : code === 'code_too_soon' ? BOT_TEXTS.codeTooSoon : BOT_TEXTS.codeNotSent);
       }
+      this.logger.error(`No se pudo pedir el código de verificación (${describeError(error)})`);
       return this.send(ctx, BOT_TEXTS.codeNotSent);
     }
     await this.send(ctx, BOT_TEXTS.codeRequested);
@@ -198,9 +212,32 @@ export class TelegramService {
         return;
       case CALLBACKS.revoke:
         return void (await this.send(ctx, BOT_TEXTS.revokePlaceholder));
+      case EXIT_PATH_CALLBACKS.request_new_code:
+      case EXIT_PATH_CALLBACKS.update_data_at_eps:
+      case EXIT_PATH_CALLBACKS.in_person_service:
+        return this.exitPath(ctx, chatId, data);
       default:
         return;
     }
+  }
+
+  /**
+   * Los tres caminos de salida (F006). Solo actúan sobre un chat que ya aceptó el aviso: de uno sin fila no hacen nada, ni
+   * siquiera responden (invariante 3). Orientan y no cambian datos del paciente (HU-003 criterio 7).
+   */
+  private async exitPath(ctx: Context, chatId: number, data: string): Promise<void> {
+    const rows = await this.db.select({ id: telegramChats.id }).from(telegramChats).where(eq(telegramChats.chatId, chatId));
+    if (rows.length === 0) return;
+    try {
+      await ctx.answerCallbackQuery();
+    } catch (error) {
+      this.logger.error(`No se pudo responder al botón de Telegram (${describeError(error)})`);
+    }
+    if (data === EXIT_PATH_CALLBACKS.update_data_at_eps) return this.send(ctx, BOT_TEXTS.updateDataAtEps);
+    if (data === EXIT_PATH_CALLBACKS.in_person_service) return this.send(ctx, BOT_TEXTS.inPersonService);
+    // Pedir un código nuevo equivale a /start: vuelve a pedir la cédula, sin consumir ni anular el reto.
+    await this.restartCedula(rows[0].id);
+    return this.send(ctx, BOT_TEXTS.askCedulaForNewCode);
   }
 
   /**
@@ -252,6 +289,12 @@ export class TelegramService {
       this.logger.error(`No se pudo enviar el mensaje por Telegram (${describeError(error)})`);
     }
   }
+}
+
+function exitPathsKeyboard(): InlineKeyboard {
+  const keyboard = new InlineKeyboard();
+  EXIT_BUTTONS.forEach((button, index) => (index === 0 ? keyboard : keyboard.row()).text(button.label, button.data));
+  return keyboard;
 }
 
 function isUpdate(body: unknown): body is { update_id: number } {

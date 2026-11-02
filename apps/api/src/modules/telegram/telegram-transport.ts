@@ -21,6 +21,10 @@ export interface RecordedCall {
   chatId?: number;
   text?: string;
   replyMarkup?: unknown;
+  /** `id` del `callback_query` al que responde `answerCallbackQuery`. */
+  callbackQueryId?: string;
+  /** La llamada se intentó pero el transporte simuló un fallo: el mensaje no llegó. */
+  failed?: true;
   /** Claves del cuerpo enviado: permite comprobar que el bot no cita ni repite lo que escribió el usuario. */
   keys: string[];
 }
@@ -46,15 +50,18 @@ export class CaptureTelegramTransport implements TelegramTransport {
 
   install(bot: Bot): void {
     bot.api.config.use(async (_prev, method, payload) => {
-      const p = payload as { chat_id?: number | string; text?: string; reply_markup?: unknown };
-      this.calls.push({
+      const p = payload as { chat_id?: number | string; text?: string; reply_markup?: unknown; callback_query_id?: string };
+      const call: RecordedCall = {
         method,
         chatId: typeof p.chat_id === 'number' ? p.chat_id : undefined,
         text: p.text,
         replyMarkup: p.reply_markup,
+        callbackQueryId: p.callback_query_id,
         // Como en el JSON que viaja a Telegram: las claves con valor indefinido no se envían.
         keys: Object.entries(p).filter(([, v]) => v !== undefined).map(([k]) => k),
-      });
+      };
+      this.calls.push(call);
+      if (this.failure) call.failed = true;
       if (this.failure?.kind === 'network') {
         throw new HttpError(this.failure.description, new Error(this.failure.description));
       }

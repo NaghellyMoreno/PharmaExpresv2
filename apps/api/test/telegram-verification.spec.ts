@@ -39,6 +39,8 @@ const CEDULA_INVALID = 'Cédula inválida. Escriba entre 5 y 12 dígitos.';
 const CODE_INCOMPLETE = 'Código incompleto. Escriba los 6 dígitos.';
 const CODE_NOT_SENT = 'No pudimos enviar el código. Intente de nuevo.';
 const CODE_NOT_VERIFIED = 'No pudimos verificar el código. Intente de nuevo.';
+// F006: el código vencido ya no recibe el texto genérico, sino el de vencido con los tres caminos.
+const CODE_EXPIRED = 'El código venció. Elija una opción para continuar.';
 const NOTICE = `${PRIVACY_NOTICE.title}\n\n${PRIVACY_NOTICE.body}\n\n${PRIVACY_NOTICE.declaration}`;
 
 const affiliates: Array<{ cedula: string; fullName: string; mobilePhone: string; email: string | null }> = JSON.parse(
@@ -290,7 +292,7 @@ describe('paso 3: código correcto antes de 10 minutos', () => {
     const before = await rowMap(pool);
     await setClockOffset(pool, 660);
     await say(A, code);
-    expect(sentTexts()).toEqual([CODE_NOT_VERIFIED]);
+    expect(sentTexts()).toEqual([CODE_EXPIRED]);
     expect(protectedUnchanged(before, await rowMap(pool))).toEqual([]);
     const row = await challengeRow(challengeId);
     expect(row.consumed_at).toBeNull();
@@ -299,7 +301,7 @@ describe('paso 3: código correcto antes de 10 minutos', () => {
     const mapAfterFirst = await rowMap(pool);
     transport.calls.length = 0;
     await say(A, code);
-    expect(sentTexts()).toEqual([CODE_NOT_VERIFIED]);
+    expect(sentTexts()).toEqual([CODE_EXPIRED]);
     expect(await rowMap(pool)).toEqual(mapAfterFirst);
     expect((await challengeRow(challengeId)).attempts_used).toBe(0);
   });
@@ -509,6 +511,12 @@ describe('7.7 el bot no repite lo que escribe el usuario', () => {
     expect(replies.length).toBeGreaterThan(8);
     expect(offending(replies, typed)).toEqual([]);
     for (const c of replies) {
+      // F006: el mensaje de vencido lleva los tres caminos (reply_markup); los demás siguen sin teclado.
+      if (c.text === CODE_EXPIRED) {
+        expect(c.replyMarkup).toBeDefined();
+        expect([...c.keys].sort()).toEqual(['chat_id', 'reply_markup', 'text']);
+        continue;
+      }
       expect(c.replyMarkup).toBeUndefined();
       expect([...c.keys].sort()).toEqual(['chat_id', 'text']);
     }
