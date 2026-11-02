@@ -7,7 +7,7 @@ import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { ACCESS_KEY, AccessGuard, DeviceSessionRoute, Public, TelegramWebhook, type AccessMark } from '../src/common/access.js';
-import { API_PREFIX } from '../src/app.js';
+import { API_PREFIX } from '../src/create-app.js';
 import { createTestApp } from './support/app.js';
 
 // Lista aprobada de rutas públicas (ADR 0016, decisión 1).
