@@ -14,6 +14,8 @@ export interface CreateAppOptions {
 /** Configuración común de la aplicación (la usan main.ts y las pruebas). */
 export function configureApp(app: NestExpressApplication): NestExpressApplication {
   app.setGlobalPrefix(API_PREFIX);
+  // Sin ETag: el cuerpo de las respuestas del código no debe dejar rastro que distinga cédulas (criterio 9.1 de F003).
+  app.disable('etag');
   app.useBodyParser('json', { limit: '100kb' });
   // CSP default-src 'none' y frame-ancestors 'none' para respuestas JSON (ADR 0016, decisión 5).
   app.use(

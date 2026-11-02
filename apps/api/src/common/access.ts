@@ -8,16 +8,23 @@ export const ACCESS_KEY = 'pe:access';
 export interface PublicOptions {
   /** Exige que `Origin` sea APP_ORIGIN en operaciones que cambian datos (ADR 0016, decisión 6). */
   checkOrigin?: boolean;
+  /** Ruta que además exige la cookie firmada de consentimiento (la aplica `ConsentCookieGuard`). */
+  requireConsent?: boolean;
 }
 
 export interface AccessMark {
   kind: 'public' | 'telegram_webhook';
   checkOrigin: boolean;
+  requireConsent?: boolean;
 }
 
 /** Ruta pública: solo las de la lista aprobada del ADR 0016. */
 export const Public = (options: PublicOptions = {}) =>
-  SetMetadata(ACCESS_KEY, { kind: 'public', checkOrigin: options.checkOrigin ?? false } satisfies AccessMark);
+  SetMetadata(ACCESS_KEY, {
+    kind: 'public',
+    checkOrigin: options.checkOrigin ?? false,
+    requireConsent: options.requireConsent ?? false,
+  } satisfies AccessMark);
 
 /**
  * Webhook de Telegram: no lleva sesión ni `Origin`; lo protege el secreto de la cabecera

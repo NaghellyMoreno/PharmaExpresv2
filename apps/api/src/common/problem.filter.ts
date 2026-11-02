@@ -42,6 +42,7 @@ export class ProblemFilter implements ExceptionFilter {
         status,
         code,
         ...(Array.isArray(extra.fieldErrors) ? { fieldErrors: extra.fieldErrors } : {}),
+        ...(typeof extra.attemptsRemaining === 'number' ? { attemptsRemaining: extra.attemptsRemaining } : {}),
       });
   }
 }
