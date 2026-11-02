@@ -1,9 +1,16 @@
 import { BadRequestException, LoggerService, ValidationError, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
-import helmet from 'helmet';
+import type { RequestHandler } from 'express';
+import helmetModule, { type HelmetOptions } from 'helmet';
 import { AppModule } from './app.module.js';
 import { ProblemFilter } from './common/problem.filter.js';
+
+// helmet publica .d.cts y .d.mts: según cómo resuelva los tipos el compilador (local o Vercel), el import por defecto
+// es la función o el módulo. En ejecución (ESM) es la función; `.default` cubre el caso contrario.
+const helmet = ((helmetModule as unknown as { default?: unknown }).default ?? helmetModule) as unknown as (
+  options?: HelmetOptions,
+) => RequestHandler;
 
 export const API_PREFIX = 'api/v1';
 
