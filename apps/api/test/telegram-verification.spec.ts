@@ -21,6 +21,7 @@ import {
   resetIdentityData,
   setClockOffset,
   waitForMessages,
+  waitForSms,
 } from './support/identity';
 import { trackSends } from './support/sends';
 import { A, B, C, WEBHOOK, captureLogs, logSink, message, nextUpdateId, press, rowDiff, rowMap, text } from './support/telegram';
@@ -79,7 +80,7 @@ async function ask(chatId: number, cedula = AFFILIATED, keepCalls = false) {
   const previous = await pool.query('SELECT 1 FROM app.otp_challenges WHERE cedula_fingerprint = $1', [fingerprintOf(cedula)]);
   if (previous.rowCount) await advanceClock(120);
   await say(chatId, cedula);
-  const sms = (await waitForMessages(pool, 1)).find((m) => m.channel === 'sms')!;
+  const sms = (await waitForSms(pool))!;
   const challengeId = (await conversation(chatId)).challengeId as string;
   if (!keepCalls) transport.calls.length = 0;
   return { code: codeIn(sms.body), challengeId };

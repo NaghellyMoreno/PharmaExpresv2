@@ -27,6 +27,7 @@ import {
   requestCode,
   resetIdentityData,
   waitForMessages,
+  waitForSms,
   type Accepted,
 } from './support/identity';
 
@@ -208,7 +209,7 @@ describe('envío del código (criterios 2.1 a 2.4)', () => {
     for (const cedula of [AFFILIATED, AFFILIATED_NO_EMAIL]) {
       await pool.query('TRUNCATE app.captured_messages, app.otp_challenges');
       await requestCode(app, accepted.cookie, cedula);
-      const sms = (await waitForMessages(pool, 1)).find((m) => m.channel === 'sms')!;
+      const sms = (await waitForSms(pool))!;
       texts.push(sms.body.replace(codeIn(sms.body), '{code}'));
     }
     expect(texts[0]).toBe(texts[1]);
@@ -248,7 +249,7 @@ describe('formato del código y de los mensajes (criterios 3.1 a 3.4)', () => {
 
   it('3.2: el SMS capturado cumple las reglas (prefijo, sin tildes, alfabeto cerrado, 160, un código)', async () => {
     await requestCode(app, accepted.cookie, AFFILIATED);
-    const sms = (await waitForMessages(pool, 1)).find((m) => m.channel === 'sms')!;
+    const sms = (await waitForSms(pool))!;
     expect(smsRules(sms.body)).toEqual(ALL_OK);
   });
 

@@ -119,6 +119,16 @@ export async function waitForMessages(pool: Pool, count: number, timeoutMs = 500
   }
 }
 
+/** Espera el SMS capturado (el correo puede llegar antes: se sondea hasta que aparezca el SMS). */
+export async function waitForSms(pool: Pool, timeoutMs = 5000): Promise<CapturedMessage | undefined> {
+  const end = Date.now() + timeoutMs;
+  for (;;) {
+    const sms = (await capturedMessages(pool)).find((m) => m.channel === 'sms');
+    if (sms || Date.now() > end) return sms;
+    await new Promise((r) => setTimeout(r, 50));
+  }
+}
+
 /** Extrae el código de 6 dígitos del cuerpo de un mensaje. */
 export function codeIn(text: string): string {
   const found = text.match(/\b\d{6}\b/g) ?? [];

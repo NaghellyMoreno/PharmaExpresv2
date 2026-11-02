@@ -21,7 +21,7 @@ import {
   resetIdentityData,
   setClockOffset,
   verifyCode,
-  waitForMessages,
+  waitForSms,
   type Accepted,
 } from './support/identity';
 import { trackSends } from './support/sends';
@@ -84,7 +84,7 @@ async function begin(cedula = AFFILIATED, seconds?: number) {
   await pool.query('TRUNCATE app.captured_messages');
   const res = await ask(cedula, seconds);
   if (res.status !== 202) throw new Error(`El pedido respondió ${res.status}`);
-  const sms = (await waitForMessages(pool, 1)).find((m) => m.channel === 'sms');
+  const sms = await waitForSms(pool);
   return { challengeId: res.body.challengeId as string, code: sms ? codeIn(sms.body) : '' };
 }
 const challenges = async (cedula = AFFILIATED) =>

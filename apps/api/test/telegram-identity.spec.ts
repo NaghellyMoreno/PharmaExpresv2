@@ -23,6 +23,7 @@ import {
   resetIdentityData,
   setClockOffset,
   waitForMessages,
+  waitForSms,
 } from './support/identity';
 import { trackSends } from './support/sends';
 import { A, NEW_CHAT, WEBHOOK, logSink, message, nextUpdateId, press, rowDiff, rowMap, text } from './support/telegram';
@@ -283,7 +284,7 @@ describe('paso 2: el código llega por SMS y correo', () => {
   it('2.5 el SMS cumple las cuatro reglas, cada una por separado', async () => {
     await acceptAs(A);
     await say(A, AFFILIATED);
-    const sms = (await waitForMessages(pool, 1)).find((m) => m.channel === 'sms')!;
+    const sms = (await waitForSms(pool))!;
     expect(sms.body.startsWith('Pharma Express:')).toBe(true);
     expect(/\p{M}/u.test(sms.body.normalize('NFD'))).toBe(false);
     expect(ALLOWED.test(sms.body)).toBe(true);
