@@ -18,6 +18,7 @@ import { CAPTURE_BOT_INFO, TELEGRAM_TRANSPORT, type TelegramTransport } from './
 const START_COMMAND = /^\/start(@\w+)?(\s|$)/;
 const CEDULA = /^[0-9]{5,12}$/;
 const CODE = /^[0-9]{6}$/;
+const DATE_FORMAT = new Intl.DateTimeFormat('es-CO', { dateStyle: 'long', timeZone: 'America/Bogota' });
 
 /** Lo único que el chat guarda de la conversación: nunca la cédula, el código ni datos de contacto. */
 interface Conversation {
@@ -113,11 +114,28 @@ export class TelegramService {
       return this.verifyCode(ctx, chat, chat.conversation.challengeId, trimmed);
     }
     if (chat.conversation.step === 'verified') {
-      // Un código de 6 dígitos se compara con el reto ya consumido; cualquier otro texto no tiene respuesta (use /start).
+      // Un código de 6 dígitos se compara con el reto ya consumido; cualquier otro texto recibe B-03 (F010).
       if (CODE.test(trimmed)) return this.verifyCode(ctx, chat, chat.conversation.lastChallengeId, trimmed);
-      return;
+      return this.showBindings(ctx, chat);
     }
     return this.requestCode(ctx, chat, trimmed);
+  }
+
+  /**
+   * B-03 mínima (F010): decide en cada mensaje con las vinculaciones vigentes de la base, nunca con lo guardado en la
+   * conversación (el identificador del chat no prueba identidad). Sin ninguna vigente no muestra ningún dato.
+   */
+  private async showBindings(ctx: Context, chat: ChatRow): Promise<void> {
+    const live = await this.identity.listLiveBindings({ column: 'telegram_chat_id', id: chat.id });
+    if (live.length > 0) {
+      const lines = live.map((b) => BOT_TEXTS.bindingLive(b.fullName, DATE_FORMAT.format(b.expiresAt)));
+      return this.send(ctx, lines.join('\n'));
+    }
+    const keyboard = new InlineKeyboard()
+      .text(EXIT_BUTTONS[0].label, EXIT_BUTTONS[0].data)
+      .row()
+      .text(BOT_TEXTS.revoke, CALLBACKS.revoke);
+    return this.send(ctx, BOT_TEXTS.bindingExpired, keyboard);
   }
 
   /**

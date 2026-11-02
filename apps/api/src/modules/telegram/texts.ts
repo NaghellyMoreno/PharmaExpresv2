@@ -30,6 +30,9 @@ export const BOT_TEXTS = {
     'El celular y el correo se cambian en su EPS (Salud Total o Sanitas), no en Pharma Express. Comuníquese con su EPS para actualizar sus datos y luego pida un código nuevo.',
   inPersonService: 'Puede acudir a la atención presencial en un punto de Disfarma en Manizales.',
   codeTooSoon: 'Ya enviamos un código hace poco. Espere 2 minutos para pedir uno nuevo.',
+  /** F010: cadenas Inferidas (B-03 mínima); la usuaria debe confirmarlas. */
+  bindingLive: (name: string, date: string) => `Paciente vinculado: ${name}. Vinculación vigente hasta el ${date}.`,
+  bindingExpired: 'Su vinculación venció. Para continuar necesita un código nuevo.',
   codeHourlyLimit: 'Alcanzó el límite de códigos por hora. Intente más tarde o acuda a la atención presencial.',
 } as const;
 

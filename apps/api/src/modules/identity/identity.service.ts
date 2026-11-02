@@ -36,6 +36,12 @@ export interface ChannelVerification<T> {
 }
 
 /** Dueño de una vinculación: un navegador (web) o un chat de Telegram (ADR 0007). */
+export interface LiveBinding {
+  patientRefId: string;
+  fullName: string;
+  expiresAt: Date;
+  hasHealthData: boolean;
+}
 export type BindingOwner = { column: 'browser_device_id' | 'telegram_chat_id'; id: string };
 
 const wrongCode = (attemptsRemaining: number) =>
@@ -245,26 +251,36 @@ export class IdentityService {
   async getChannelSession(deviceId: string): Promise<components['schemas']['ChannelSession']> {
     const csrfToken = newToken();
     await this.pool.query('UPDATE app.browser_devices SET csrf_hash = $2, last_seen_at = app.clock_now() WHERE id = $1', [deviceId, hashToken(csrfToken)]);
+    const rows = await this.listLiveBindings({ column: 'browser_device_id', id: deviceId });
+    return {
+      bindings: rows.map((r) => ({
+        patientRefId: r.patientRefId,
+        displayName: r.fullName,
+        expiresAt: r.expiresAt.toISOString(),
+        hasHealthDataAuthorization: r.hasHealthData,
+      })),
+      csrfToken,
+      pushEnabled: false,
+    };
+  }
+
+  /**
+   * Única consulta de las vinculaciones vigentes de un dueño (navegador o chat), en orden de creación: la usan `GET /me` y el
+   * bot, para que web y Telegram no discrepen. Las vencidas y las revocadas nunca salen. No renueva ni cambia nada.
+   */
+  async listLiveBindings(owner: BindingOwner): Promise<LiveBinding[]> {
+    const column = owner.column; // unión cerrada de dos nombres: no viene del usuario
     const { rows } = await this.pool.query<{ patient_ref_id: string; full_name: string; expires_at: Date; has_health: boolean }>(
       `SELECT b.patient_ref_id, a.full_name, b.expires_at,
               EXISTS (SELECT 1 FROM app.consent_records k WHERE k.cedula_fingerprint = p.cedula_fingerprint AND k.kind = 'health_data') AS has_health
        FROM app.channel_bindings b
        JOIN app.patient_refs p ON p.id = b.patient_ref_id
        JOIN sim.affiliates a ON a.id = p.sim_affiliate_id
-       WHERE b.browser_device_id = $1 AND b.revoked_at IS NULL AND b.expires_at > app.clock_now()
+       WHERE b.${column} = $1 AND b.revoked_at IS NULL AND b.expires_at > app.clock_now()
        ORDER BY b.created_at`,
-      [deviceId],
+      [owner.id],
     );
-    return {
-      bindings: rows.map((r) => ({
-        patientRefId: r.patient_ref_id,
-        displayName: r.full_name,
-        expiresAt: r.expires_at.toISOString(),
-        hasHealthDataAuthorization: r.has_health,
-      })),
-      csrfToken,
-      pushEnabled: false,
-    };
+    return rows.map((r) => ({ patientRefId: r.patient_ref_id, fullName: r.full_name, expiresAt: r.expires_at, hasHealthData: r.has_health }));
   }
 
   /** Reutiliza la vinculación vigente del mismo dueño y paciente; si venció, la revoca y crea otra (3 meses). */
