@@ -13,7 +13,7 @@ export interface PublicOptions {
 }
 
 export interface AccessMark {
-  kind: 'public' | 'telegram_webhook';
+  kind: 'public' | 'telegram_webhook' | 'device_session';
   checkOrigin: boolean;
   requireConsent?: boolean;
 }
@@ -32,6 +32,13 @@ export const Public = (options: PublicOptions = {}) =>
  */
 export const TelegramWebhook = () =>
   SetMetadata(ACCESS_KEY, { kind: 'telegram_webhook', checkOrigin: false } satisfies AccessMark);
+
+/**
+ * Ruta del navegador vinculado (`deviceSession`): la autentica `DeviceSessionGuard` con la cookie `__Host-pe_device`.
+ * Las que cambian datos exigen además `Origin` válido.
+ */
+export const DeviceSessionRoute = () =>
+  SetMetadata(ACCESS_KEY, { kind: 'device_session', checkOrigin: true } satisfies AccessMark);
 
 const sha256 = (value: string) => createHash('sha256').update(value).digest();
 

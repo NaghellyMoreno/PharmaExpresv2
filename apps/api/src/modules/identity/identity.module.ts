@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { ChannelSessionController } from './channel-session.controller';
 import { ConsentCookieGuard } from './consent-cookie.guard';
 import { ConsentCookieService } from './consent-cookie.service';
 import { ConsentController } from './consent.controller';
@@ -8,7 +9,7 @@ import { IdentityService } from './identity.service';
 
 @Module({
   imports: [NotificationsModule],
-  controllers: [ConsentController, IdentityController],
+  controllers: [ConsentController, IdentityController, ChannelSessionController],
   providers: [
     { provide: ConsentCookieService, useFactory: () => new ConsentCookieService(process.env.CONSENT_COOKIE_KEY ?? '') },
     ConsentCookieGuard,

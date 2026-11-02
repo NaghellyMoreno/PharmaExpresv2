@@ -232,6 +232,41 @@ export class IdentityService {
     return { deviceId: created.rows[0].id, token, csrfToken };
   }
 
+  /** Navegador de la cookie, o null si el token no está registrado. Solo se compara el hash (ADR 0007). */
+  async findDevice(token: string): Promise<{ id: string } | null> {
+    const { rows } = await this.pool.query<{ id: string }>('SELECT id FROM app.browser_devices WHERE token_hash = $1', [hashToken(token)]);
+    return rows[0] ?? null;
+  }
+
+  /**
+   * `GET /me`: vinculaciones vigentes del navegador (las vencidas y las revocadas nunca salen) y un token CSRF nuevo.
+   * Es una consulta: no renueva la cookie ni cambia ninguna vinculación (la vida es fija desde la creación, ADR 0007).
+   */
+  async getChannelSession(deviceId: string): Promise<components['schemas']['ChannelSession']> {
+    const csrfToken = newToken();
+    await this.pool.query('UPDATE app.browser_devices SET csrf_hash = $2, last_seen_at = app.clock_now() WHERE id = $1', [deviceId, hashToken(csrfToken)]);
+    const { rows } = await this.pool.query<{ patient_ref_id: string; full_name: string; expires_at: Date; has_health: boolean }>(
+      `SELECT b.patient_ref_id, a.full_name, b.expires_at,
+              EXISTS (SELECT 1 FROM app.consent_records k WHERE k.cedula_fingerprint = p.cedula_fingerprint AND k.kind = 'health_data') AS has_health
+       FROM app.channel_bindings b
+       JOIN app.patient_refs p ON p.id = b.patient_ref_id
+       JOIN sim.affiliates a ON a.id = p.sim_affiliate_id
+       WHERE b.browser_device_id = $1 AND b.revoked_at IS NULL AND b.expires_at > app.clock_now()
+       ORDER BY b.created_at`,
+      [deviceId],
+    );
+    return {
+      bindings: rows.map((r) => ({
+        patientRefId: r.patient_ref_id,
+        displayName: r.full_name,
+        expiresAt: r.expires_at.toISOString(),
+        hasHealthDataAuthorization: r.has_health,
+      })),
+      csrfToken,
+      pushEnabled: false,
+    };
+  }
+
   /** Reutiliza la vinculación vigente del mismo dueño y paciente; si venció, la revoca y crea otra (3 meses). */
   async resolveBinding(c: PoolClient, owner: BindingOwner, patientRefId: string): Promise<Date> {
     const column = owner.column; // unión cerrada de dos nombres: no viene del usuario

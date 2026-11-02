@@ -6,7 +6,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { ACCESS_KEY, AccessGuard, Public, TelegramWebhook, type AccessMark } from '../src/common/access';
+import { ACCESS_KEY, AccessGuard, DeviceSessionRoute, Public, TelegramWebhook, type AccessMark } from '../src/common/access';
 import { API_PREFIX } from '../src/app';
 import { createTestApp } from './support/app';
 
@@ -30,6 +30,9 @@ const APPROVED_CONSENT_REQUIRED = ['POST /identity/otp-requests', 'POST /identit
 
 // Webhook de Telegram: protegido por secreto, sin sesión ni Origin (ADR 0008 y 0016).
 const APPROVED_TELEGRAM_WEBHOOK = ['POST /telegram/webhook'];
+
+// Rutas del navegador vinculado (`deviceSession`, F009): las autentica DeviceSessionGuard con la cookie de dispositivo.
+const APPROVED_DEVICE_SESSION = ['GET /me'];
 
 interface RouteInfo {
   route: string;
@@ -56,7 +59,10 @@ function problems(routes: RouteInfo[]): string[] {
   const out: string[] = [];
   for (const { route, mark } of routes) {
     if (!mark) out.push(`${route}: sin marca de acceso`);
-    else if (mark.kind === 'telegram_webhook') {
+    else if (mark.kind === 'device_session') {
+      if (!APPROVED_DEVICE_SESSION.includes(route)) out.push(`${route}: de navegador (deviceSession) fuera de la lista aprobada`);
+      if (!mark.checkOrigin) out.push(`${route}: de navegador sin control de Origin`);
+    } else if (mark.kind === 'telegram_webhook') {
       if (!APPROVED_TELEGRAM_WEBHOOK.includes(route)) out.push(`${route}: webhook de Telegram fuera de la lista aprobada`);
     } else if (mark.kind === 'public') {
       if (!APPROVED_PUBLIC.includes(route)) out.push(`${route}: pública fuera de la lista aprobada`);
@@ -82,7 +88,7 @@ describe('marcas de acceso de las rutas (ADR 0016)', () => {
       [...m.controllers.values()].map((w) => w.metatype as Function),
     );
     const routes = listRoutes(controllers);
-    expect(routes.map((r) => r.route)).toEqual(expect.arrayContaining(['GET /privacy-notice', 'POST /consents/acceptance', 'POST /telegram/webhook', ...APPROVED_CONSENT_REQUIRED]));
+    expect(routes.map((r) => r.route)).toEqual(expect.arrayContaining(['GET /privacy-notice', 'POST /consents/acceptance', 'POST /telegram/webhook', ...APPROVED_DEVICE_SESSION, ...APPROVED_CONSENT_REQUIRED]));
     expect(problems(routes)).toEqual([]);
   });
 
@@ -95,6 +101,16 @@ describe('marcas de acceso de las rutas (ADR 0016)', () => {
       @TelegramWebhook() @Post('otro-webhook') cuatro() {}
     }
     expect(problems(listRoutes([SinMarca]))).toHaveLength(5);
+  });
+
+  // F009, criterio 2.11: una ruta de navegador fuera de la lista aprobada hace fallar la enumeración.
+  it('falla ante una ruta deviceSession fuera de la lista aprobada (control positivo)', () => {
+    @Controller('me')
+    class DeNavegador {
+      @DeviceSessionRoute() @Get() uno() {}
+      @DeviceSessionRoute() @Get('otra') dos() {}
+    }
+    expect(problems(listRoutes([DeNavegador]))).toEqual(['GET /me/otra: de navegador (deviceSession) fuera de la lista aprobada']);
   });
 
   // Criterio T.2 de F003: una ruta de identidad sin la marca de consentimiento hace fallar la enumeración.
