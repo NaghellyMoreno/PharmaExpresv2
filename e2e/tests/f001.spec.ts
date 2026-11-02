@@ -95,7 +95,7 @@ test.describe('paso 1: la web abre con el aviso', () => {
     await page.goto('/');
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     expect(seen.map((r) => r.method()).filter((m) => m !== 'GET')).toEqual([]);
-    expect(apiCalls(seen).map((r) => `${r.method()} ${new URL(r.url()).pathname}`)).toEqual(['GET /api/v1/privacy-notice']);
+    expect(apiCalls(seen).map((r) => `${r.method()} ${new URL(r.url()).pathname}`)).toEqual(['GET /api/v1/me', 'GET /api/v1/privacy-notice']); // F009: GET /me reconoce al navegador vinculado (sin cookie responde 401)
     expect(await context.cookies()).toEqual([]);
   });
 
@@ -232,7 +232,7 @@ test.describe('paso 4: aceptar', () => {
     await p1.goto('/');
     await p1.getByRole('button', { name: S.reject, exact: true }).click();
     await expect(p1.getByText(S.rejected, { exact: true })).toBeVisible();
-    expect(apiCalls(seen1).map((r) => r.method())).toEqual(['GET']);
+    expect(apiCalls(seen1).map((r) => r.method())).toEqual(['GET', 'GET']); // F009: GET /me y GET /privacy-notice
     expect(await first.cookies()).toEqual([]);
     // (b) se cierra y se abre otro contexto limpio.
     await first.close();
