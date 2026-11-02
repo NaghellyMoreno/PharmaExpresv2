@@ -172,7 +172,10 @@ export class TelegramService {
                                               'pendingAcceptance', conversation->'pendingAcceptance')
         WHERE id = ${chat.id}`);
     } catch (error) {
-      this.logger.error(`No se pudo pedir el código de verificación (${describeError(error)})`);
+      // Un 429 (espera de 2 minutos o límite por hora) es esperado: no crea reto ni envía nada y el chat sigue en awaiting_cedula.
+      if (!(error instanceof HttpException && error.getStatus() === 429)) {
+        this.logger.error(`No se pudo pedir el código de verificación (${describeError(error)})`);
+      }
       return this.send(ctx, BOT_TEXTS.codeNotSent);
     }
     await this.send(ctx, BOT_TEXTS.codeRequested);

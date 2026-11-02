@@ -342,6 +342,7 @@ describe('segunda verificación del mismo paciente (criterios 4.11 y 4.12, Infer
     const first = await begin();
     const r1 = await verifyCode(app, accepted.cookie, { challengeId: first.challengeId, code: first.code });
     const token = tokenOf(deviceCookie(r1)!);
+    await setClockOffset(pool, 120); // F005: espera de 2 minutos entre dos pedidos de la misma cédula
     const second = await begin();
     const before = await countAllRows(pool);
     const bindingBefore = (await pool.query('SELECT id, expires_at FROM app.channel_bindings')).rows[0];
@@ -358,6 +359,7 @@ describe('segunda verificación del mismo paciente (criterios 4.11 y 4.12, Infer
   it('4.12: desde otro navegador reutiliza al paciente y crea otro dispositivo y otra vinculación', async () => {
     const first = await begin();
     const r1 = await verifyCode(app, accepted.cookie, { challengeId: first.challengeId, code: first.code });
+    await setClockOffset(pool, 120); // F005: espera de 2 minutos entre dos pedidos de la misma cédula
     const second = await begin();
     const before = await countAllRows(pool);
     const r2 = await verifyCode(app, accepted.cookie, { challengeId: second.challengeId, code: second.code });
@@ -393,6 +395,7 @@ describe('pedir el código tras verificar y retos anteriores', () => {
   it('un código nuevo anula el anterior: el código viejo ya no se acepta', async () => {
     const first = await begin();
     await pool.query('TRUNCATE app.captured_messages');
+    await setClockOffset(pool, 120); // F005: espera de 2 minutos entre dos pedidos de la misma cédula
     await requestCode(app, accepted.cookie, AFFILIATED);
     await waitForMessages(pool, 2);
     const res = await verifyCode(app, accepted.cookie, { challengeId: first.challengeId, code: first.code });

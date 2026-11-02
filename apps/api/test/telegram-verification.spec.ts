@@ -75,12 +75,16 @@ async function say(chatId: number, value: string, target = app, tracker = sends)
 /** Pide el código por el bot y devuelve el código del SMS capturado y el reto. */
 async function ask(chatId: number, cedula = AFFILIATED, keepCalls = false) {
   await pool.query('TRUNCATE app.captured_messages');
+  // F005: entre dos pedidos de la misma cédula deben pasar 120 s; si la cédula ya tiene retos, se adelanta el reloj.
+  const previous = await pool.query('SELECT 1 FROM app.otp_challenges WHERE cedula_fingerprint = $1', [fingerprintOf(cedula)]);
+  if (previous.rowCount) await advanceClock(120);
   await say(chatId, cedula);
   const sms = (await waitForMessages(pool, 1)).find((m) => m.channel === 'sms')!;
   const challengeId = (await conversation(chatId)).challengeId as string;
   if (!keepCalls) transport.calls.length = 0;
   return { code: codeIn(sms.body), challengeId };
 }
+const advanceClock = (seconds: number) => pool.query('UPDATE app.test_clock SET offset_seconds = offset_seconds + $1', [seconds]);
 async function clockNow(): Promise<Date> {
   return (await pool.query<{ now: Date }>('SELECT app.clock_now() AS now')).rows[0].now;
 }
@@ -315,6 +319,7 @@ describe('paso 3: código correcto antes de 10 minutos', () => {
     expect(row.attempts_used).toBe(0);
     expect(protectedUnchanged(before, await rowMap(pool))).toEqual([]);
     transport.calls.length = 0;
+    await advanceClock(120); // F005: espera de 2 minutos
     await say(A, AFFILIATED);
     expect(sentTexts()).toEqual([APPROVED]);
     expect((await conversation(A)).challengeId).not.toBe(challengeId);
@@ -587,6 +592,7 @@ describe('registros (invariante 8)', () => {
       const failTransport = failApp.get<CaptureTelegramTransport>(TELEGRAM_TRANSPORT);
       await post(message(B), process.env.TELEGRAM_WEBHOOK_SECRET!, failApp);
       await post(press(B, 'accept:holder'), process.env.TELEGRAM_WEBHOOK_SECRET!, failApp);
+      await advanceClock(120); // F005: espera de 2 minutos
       typed.push(AFFILIATED);
       const res = await say(B, AFFILIATED, failApp, failSends);
       expect(res.status).toBe(200);

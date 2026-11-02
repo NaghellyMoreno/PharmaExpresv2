@@ -6,6 +6,7 @@ import { PG_POOL } from '../../db/db.module';
 import { withTransaction } from '../../db/transaction';
 import type { OtpDelivery } from '../notifications/otp-notifier.service';
 import type { ConsentPayload } from './consent-cookie.service';
+import { EXIT_PATHS, MAX_CODES_PER_HOUR, MIN_SECONDS_BETWEEN_CODES } from './messages';
 import { cedulaFingerprint, generateOtpCode, hashOtpCode, hashToken, newToken, sameHash } from './identity-crypto';
 
 type Binding = components['schemas']['Binding'];
@@ -40,7 +41,10 @@ export type BindingOwner = { column: 'browser_device_id' | 'telegram_chat_id'; i
 const wrongCode = (attemptsRemaining: number) =>
   new HttpException({ code: 'code_incorrect', title: 'El código no es correcto', attemptsRemaining }, 422);
 const codeGone = (code: 'code_superseded' | 'code_expired' | 'code_attempts_exhausted', title: string) =>
-  new HttpException({ code, title }, 410);
+  // Vencido y agotado ofrecen los tres caminos de salida; el anulado no (F005).
+  new HttpException({ code, title, ...(code === 'code_superseded' ? {} : { nextSteps: EXIT_PATHS }) }, 410);
+const tooManyRequests = (code: 'code_too_soon' | 'code_hourly_limit', title: string, retryAfterSeconds: number) =>
+  new HttpException({ code, title, retryAfterSeconds }, 429);
 
 /** Casos de uso del código de un solo uso y de la verificación de identidad (ADR 0006 y 0007). */
 @Injectable()
@@ -55,6 +59,7 @@ export class IdentityService {
     const fingerprint = cedulaFingerprint(cedula);
     return withTransaction(this.pool, async (c) => {
       await c.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [fingerprint]);
+      await this.assertWithinLimits(c, fingerprint);
       const { rows } = await c.query<{ mobile_phone: string; email: string | null }>(
         'SELECT mobile_phone, email FROM sim.affiliates WHERE cedula = $1',
         [cedula],
@@ -78,6 +83,30 @@ export class IdentityService {
         delivery: affiliate && code ? { code, mobilePhone: affiliate.mobile_phone, email: affiliate.email } : null,
       };
     });
+  }
+
+  /**
+   * Espera de 2 minutos y máximo de 5 por hora, por huella (no por canal ni navegador). Cuentan los retos creados de cualquier
+   * propósito y estado; un pedido rechazado no crea nada. Corre dentro de la transacción con el bloqueo de la huella, antes de anular
+   * el reto vigente, así que dos pedidos simultáneos se serializan (ADR 0006, decisión 4). Si ambos límites aplican, gana la espera.
+   */
+  private async assertWithinLimits(c: PoolClient, fingerprint: string): Promise<void> {
+    const { rows } = await c.query<{ since_last: string | null; in_window: number; window_wait: string | null }>(
+      `SELECT EXTRACT(EPOCH FROM (app.clock_now() - max(created_at))) AS since_last,
+              count(*) FILTER (WHERE created_at > app.clock_now() - interval '60 minutes')::int AS in_window,
+              EXTRACT(EPOCH FROM (min(created_at) FILTER (WHERE created_at > app.clock_now() - interval '60 minutes')
+                                  + interval '60 minutes' - app.clock_now())) AS window_wait
+       FROM app.otp_challenges WHERE cedula_fingerprint = $1`,
+      [fingerprint],
+    );
+    const { since_last, in_window, window_wait } = rows[0];
+    if (since_last !== null && Number(since_last) < MIN_SECONDS_BETWEEN_CODES) {
+      const wait = Math.ceil(MIN_SECONDS_BETWEEN_CODES - Number(since_last));
+      throw tooManyRequests('code_too_soon', 'Ya enviamos un código hace poco', Math.min(MIN_SECONDS_BETWEEN_CODES, Math.max(1, wait)));
+    }
+    if (in_window >= MAX_CODES_PER_HOUR) {
+      throw tooManyRequests('code_hourly_limit', 'Límite de códigos por hora', Math.min(3600, Math.max(1, Math.ceil(Number(window_wait)))));
+    }
   }
 
   /** Verificación desde la web: el canal aporta la cookie de consentimiento y el dispositivo del navegador. */

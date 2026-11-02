@@ -33,6 +33,8 @@ export class ProblemFilter implements ExceptionFilter {
     const extra = typeof body === 'object' && body !== null ? (body as Record<string, unknown>) : {};
     const code = typeof extra.code === 'string' ? extra.code : (DEFAULT_CODES[status] ?? 'internal_error');
     const title = typeof extra.title === 'string' ? extra.title : 'No se pudo completar la solicitud';
+    const retryAfterSeconds = typeof extra.retryAfterSeconds === 'number' ? extra.retryAfterSeconds : undefined;
+    if (retryAfterSeconds !== undefined) res.setHeader('Retry-After', String(retryAfterSeconds));
     res
       .status(status)
       .type('application/problem+json')
@@ -43,6 +45,8 @@ export class ProblemFilter implements ExceptionFilter {
         code,
         ...(Array.isArray(extra.fieldErrors) ? { fieldErrors: extra.fieldErrors } : {}),
         ...(typeof extra.attemptsRemaining === 'number' ? { attemptsRemaining: extra.attemptsRemaining } : {}),
+        ...(retryAfterSeconds !== undefined ? { retryAfterSeconds } : {}),
+        ...(Array.isArray(extra.nextSteps) ? { nextSteps: extra.nextSteps } : {}),
       });
   }
 }
