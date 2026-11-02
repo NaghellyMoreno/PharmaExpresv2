@@ -46,7 +46,7 @@
       "Ingresar una cédula que no existe en la EPS simulada y verificar que se muestra exactamente el mismo mensaje, que no se envía ningún código y que no se crea ninguna cuenta",
       "Pedir el código directamente por la API con una cédula afiliada y con una inexistente y verificar que las dos respuestas no permiten distinguir cuál está afiliada"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "F004",
