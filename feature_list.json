@@ -80,7 +80,7 @@
       "Pedir un código nuevo pasados 2 minutos, ingresar el código anterior y verificar que se rechaza porque quedó anulado; ingresar el nuevo y verificar que se acepta",
       "Con la misma cédula, pedir 5 códigos en una hora respetando los 2 minutos y verificar que el sexto se rechaza, también si se pide por Telegram o directamente por la API"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "F006",
