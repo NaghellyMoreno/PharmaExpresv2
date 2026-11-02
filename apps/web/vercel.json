@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://PHARMA_EXPRESS_API_DOMAIN/api/:path*" },
+    { "source": "/api/:path*", "destination": "https://pharma-express-api-kappa.vercel.app/api/:path*" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "headers": [
