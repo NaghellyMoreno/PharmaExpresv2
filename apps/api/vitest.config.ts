@@ -12,6 +12,7 @@ export default defineConfig({
     // Los archivos corren en serie: app.test_clock y las tablas de F003 son estado global de la base (criterio T.7).
     fileParallelism: false,
     globalSetup: ['./test/support/global-setup.ts'],
+    setupFiles: ['./test/support/clean-challenges.ts'],
     env: {
       DATABASE_URL: process.env.DATABASE_URL ?? 'postgres://pharma:pharma@localhost:5433/pharma',
       APP_ORIGIN: 'http://localhost:4173',
